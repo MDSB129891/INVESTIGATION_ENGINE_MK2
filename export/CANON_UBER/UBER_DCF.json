@@ -1,0 +1,27 @@
+{
+  "ticker": "UBER",
+  "inputs": {
+    "fcf_ttm": 9763000000.0,
+    "net_debt": 5734000000.0,
+    "shares_used": 2077830357.0057583,
+    "price_used": 72.94,
+    "market_cap_used": 151556946240.0
+  },
+  "assumptions": {
+    "discount_rate": 0.1,
+    "terminal_growth": 0.02,
+    "bear_growth": 0.03,
+    "base_growth": 0.08,
+    "bull_growth": 0.12
+  },
+  "valuation_per_share": {
+    "bear_price": 59.73,
+    "base_price": 74.14,
+    "bull_price": 87.6
+  },
+  "upside_downside_vs_price_pct": {
+    "bear": -18.1,
+    "base": 1.6,
+    "bull": 20.1
+  }
+}

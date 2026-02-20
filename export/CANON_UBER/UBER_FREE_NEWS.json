@@ -1,0 +1,673 @@
+{
+  "ticker": "UBER",
+  "generated_utc": "2026-02-20T03:09:29.736233Z",
+  "feeds": [
+    {
+      "query": "UBER stock",
+      "rss_url": "https://news.google.com/rss/search?q=UBER%20stock&hl=en-US&gl=US&ceid=US:en",
+      "count": 100
+    },
+    {
+      "query": "UBER earnings",
+      "rss_url": "https://news.google.com/rss/search?q=UBER%20earnings&hl=en-US&gl=US&ceid=US:en",
+      "count": 100
+    },
+    {
+      "query": "UBER regulation",
+      "rss_url": "https://news.google.com/rss/search?q=UBER%20regulation&hl=en-US&gl=US&ceid=US:en",
+      "count": 100
+    },
+    {
+      "query": "UBER labor drivers employees",
+      "rss_url": "https://news.google.com/rss/search?q=UBER%20labor%20drivers%20employees&hl=en-US&gl=US&ceid=US:en",
+      "count": 100
+    },
+    {
+      "query": "UBER insurance lawsuits",
+      "rss_url": "https://news.google.com/rss/search?q=UBER%20insurance%20lawsuits&hl=en-US&gl=US&ceid=US:en",
+      "count": 71
+    }
+  ],
+  "items": [
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Jim Cramer Discusses \u201cOver Trading\u201d In Uber (UBER) Stock - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMihgFBVV95cUxNcWM0cmxNWGtYdW1BdGZoaFFPeGZXeTNxZjJwa1VqdmVtanlLMmtPVi1ZM2Nob1h2clduaHlpb2RqclhGY1RPQ3ViU2JwR3RzUDQydFJMLTJHNnI4V2RqVUpHcGhyNU1MLWluaVJOelVUVXg2TFFxemZDSWx6U3EteVM3UktGZw?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2026-02-18T11:50:18-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber: A Rare Opportunity To Buy The Future Robotaxi 'Winner-Take-Most' - Seeking Alpha",
+      "link": "https://news.google.com/rss/articles/CBMipAFBVV95cUxOVWdZelkwS3FKcmFTd194QWZjdElXWUlTMW5JY3RRQTFHWGt2eEZWWHN0MmlXc25jSjVJdjBVYTVxRmR6MlNEc1U4cTNQLVZNVFlpZHprMW1ueWdvVkJvd1ZVUXFENWtNT3FSRmN3Yi1oUUZMdmN0TWUzUWxFbTlIcWFQRFJ4WXJZRzdQWWRjS1VvTWwtWXZiUGc2VkNiWjRldEI1ZQ?oc=5",
+      "source": "Seeking Alpha",
+      "published": "2026-02-19T03:08:17-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber Stock Ticks Up as Company Pledges $100 Million for Robotaxi Charging Hubs - TipRanks",
+      "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPTVZDbGs3UWV1NzRGcXVlX212RFBsOWJwMi15Mk1SU3pzbzRVLXpFSjNlX2NUaHhpRlpnd2xLRFgtZVY0Y0VFQ21jakNhSy1CRm1iRWJxNDcwSHdKcEJ1bW95RnlmQkhkR0RVNmFJczY1NzMtSlFJS3VMSDRRQ0R2dTJmTENzY2wyTTdpdmFGRWVwaF84VWhZMEd6cnlfUXR4a2FialhnT09tMzQ?oc=5",
+      "source": "TipRanks",
+      "published": "2026-02-18T07:10:24-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber: This Makes No Sense (NYSE:UBER) - Seeking Alpha",
+      "link": "https://news.google.com/rss/articles/CBMic0FVX3lxTE1JZjBKRERRQkJzWUU3TVg1TnN5MmY1UGI0UWRmVDNlZm5UMkhncEhKbmpvWmkyQlFLaVBSRDdJQ1Uzb3pDUnNLWTd0UDQtNFZlOWhISzhZX0tYb0lKQmpXajBjNDNJUmh3LXlCWEJHZU4yV2c?oc=5",
+      "source": "Seeking Alpha",
+      "published": "2026-02-18T15:30:57-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber offers incentives for EV chargers, Wendy's stock surges - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxOY0Q2OERaOUJKWGhDb2RrQk9VTy1Rd0o5ZjRqQXR2S0lrVThqaC1LdFRPRURzbWJvUFBVcGN1VFVmNjBIeW9yaTRDYkJpaV9uMXJTM3p6dzhCb3FkNjRIbDdpd0VnZ0FmS0tYbEhhWEx3V25oR3lpU0xjMGU1MUV5NGs3OVNfVkxp?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2026-02-18T13:08:03-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "From Rides To Robots: Uber\u2019s Path Through The AV And AI Era (NYSE:UBER) - Seeking Alpha",
+      "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxQOVp6NzhxUzlPMHJHcm1oS1BVOHNNT0ZJMExiNkR6R2hYZVBUNnN4R1VtbmZSemRGN1lvUElmWV9xMjBVaU1TOVBaemV0QmNHbGstUWRRVnNpRUV3S2diaXoyQzFZUU5uMi1wSEVEZFFFY3kxR25KenRKR3hHWkpZV0kzd3E3NzJidnlzNjlDdFFIWHpaZkk4eEVtX0cyazA?oc=5",
+      "source": "Seeking Alpha",
+      "published": "2026-02-18T10:48:51-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber: Valuation Gap Creates A Massive Opportunity (NYSE:UBER) - Seeking Alpha",
+      "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxPM1c3S01hQ2oxSnlOejRMOFRnVFJQNmhFTGlnRE5qNjdHZkhmQzk5NUVXTW9iMnpOTmdfRldEOFhGOXBiLU9qbXQ2ZnpKUS1OdTRqcjlTRWpReDdHaVRqbThPOVNwRUZNR1VaMlpCREQ4aVg5NEpURXlyWi1pd283dlUxTDFoajVSMUFDT193VGM4bnM?oc=5",
+      "source": "Seeking Alpha",
+      "published": "2026-02-17T08:18:04-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Where Will Uber Technologies Stock Be in 3 Years? - The Motley Fool",
+      "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQeUJIV25XOGVUSXFrMDhKeHA0UmkwUTVadWs3ZkJnMDZhenhUOGN4dVlpT2ZJQTdsS3BRRDFiQ0VidlNjVDJMTkl1ZWZ2RE9MaWV6bWNwem1xeG9qaTZkb3hocVZtZHM4REJRZVBWRjNlZEdpSTJYZXFRSDI1eFZ4OWt6QlFob1ZZZnZ4WmIzbV9EX0ZRSlE?oc=5",
+      "source": "The Motley Fool",
+      "published": "2026-01-07T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber Stock Drops 6.4% This Week After Earnings Miss and Robotaxi Expansion - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMidEFVX3lxTFBmNHNNTkk2WmhPVE83R2xseU9RUDExdGNKaXZSLU9nSGZ6eEFXV2lQS3BYVWwzNFRHUVZKZFVlTE53bUhuRlF2Q1ppUHNGd0lZN01PaGhONFRUQ3lBeHdKck9fcVVscU1jRm1oSV9nMkw2cDRS?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2026-02-14T15:20:34-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Guggenheim cuts Uber stock price target on valuation concerns - Investing.com",
+      "link": "https://news.google.com/rss/articles/CBMivgFBVV95cUxQN0xTdlZ0dm16ZXAtaEtXY05HNDhSZlYyYmJoenVjSDlmMkcyaWRjSC1NSF8wRE5jd1RtZUJfbjUtaGFmUk1qcFpZd1pRRlE5c3ZOaVVBb25JbC1NMEx0Ym9CUndialo2ZXhKenlOVkRuOXhjU2d4UDJ2aTU1cnFaaVJDZTYyUkhWWlpPTllnbjJpaklBZXJhODV0OW1zZFdQQnpzakJ5Y2JCaDJHX0Rqa1Q2LWZiSTBSSkxiRkN3?oc=5",
+      "source": "Investing.com",
+      "published": "2026-02-18T08:25:05-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber Slides On Earnings Miss, Profit Guidance - Investor's Business Daily",
+      "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTE90YVRNUGFEdGFOUDctd3dBQTN5SG9qUGlNR1JPZmN3YnBnUUxrVUpPWGJvaU5zTDBBcEtkc0lvWkFOcjR3NmVyNjd0Y0hJbEM5OHYzdUVGXzV5WVg3SlhBTlBHUWJ1M3hiU2dkN2ZSV0ZSZzhUTmlFSWNn?oc=5",
+      "source": "Investor's Business Daily",
+      "published": "2026-02-04T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber stock struggles as robotaxis expand services, WSJ says - TipRanks",
+      "link": "https://news.google.com/rss/articles/CBMirAFBVV95cUxPV0dMVHFHVWgzLU80ZXd4QmRzU0Q0OHNJaGNkTFRLeGk5cEVQRnVuMUNQZ1JzejZGNUdyazl3dEJONlVZMFRtazBoSTQ2MjRoTGlaazd5SUwzQnlhQy1URWZuTUZURU1NcmVWclZsa25rbldjM0hhMFhKTXVnMEtKM1lFMUY4ay10UksyaWlFVncxSkJ2US1lUnlQUFZ2b3d6dU9pZXBRVE85b0VN?oc=5",
+      "source": "TipRanks",
+      "published": "2026-02-19T05:44:22-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber Stock Falls on Earnings and Guidance Miss. Robo-Taxis Are the Wild Card. - Barron's",
+      "link": "https://news.google.com/rss/articles/CBMi-wJBVV95cUxNWXQwYkVqcnJBNlZNWDk2bFhZWURac01rVEFpdkhwaWVjQUpYVVp2R3pQNEVBVWViTjZKNXZqdFVpdnpzVWxIWXQyTVRUNlRkd2w0NnlUMVM2V0FrY1pDRFU3LV9pSE5HYjhrVGRGZ2tGa0FqcXFreGh3Vko2RXA5VnQ2X0duNUNXZjd2Y1F0ZXR1dU9EcHhZaWpzcTNjNGFBNXRMRXd3RmI4bHZ4dWIzdE9YZUlTQnhSdjJDMlgwS3pwbEs5bXBIeHAwLTFGemNnd1pCbE5ZNTFteTFqOXd5VFNlTWdkV3pDSUFZUC1DSzdxUlE1ZXdjRWpRekZyVkc4RnZfcTkwWmV2dU8xTTN5eHZmMDFSZHpxU0UycTEwY2Q0WUtIOGlXWG5GMndnVXBkV2p0b1FWa3BzYThEcHliaHVWeFdNT2Z2VVBpLXVDZWRlZGlQUmpycDE1eGRFMTZkYnVweXQwTWJINzNoOVd1Tm5pR05mOHg1WkQ4?oc=5",
+      "source": "Barron's",
+      "published": "2026-02-04T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Dara Khosrowshahi Just Delivered Incredible News for Uber Stock Investors - The Motley Fool",
+      "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxPZmM3Z2JaMzhMS2xUWVZzeGE2c2JrWU03UlNCeEptTmxzcVJ4REdKVkt3WllmTWRhUG1DQ1BTOUlsTnA1V0Z1ckJDaFlGQ0FhVDBuclQwaHpzbkdLYXJYN2xPWWdtMmxtT2wtQVQ1Rzlid0h0Y0FSMHdSVGpHd1hxOE1tQThaMWhCUWpfSWJ4UHZJS0Zz?oc=5",
+      "source": "The Motley Fool",
+      "published": "2026-02-08T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "John Hickenlooper Just Bought a Ton of Uber Stock. He Also Sits on the Senate\u2019s Transportation Committee. - NOTUS \u2014 News of the United States",
+      "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxNMDdGVTVMeHZqUXNxTE1LZmE5SG5JVC1qZlFuck44ZGJYbW9JdjRjM3c3T2hBZS1GRUdUUzFjUEcycWxrOHZvV19McERpVl9SUU1rdTZLLTZMU3hXNHNMaHZZU0wtcXVmcWoySzVXSWtVQjJONjJDTG03bmx5QnlGdlVacER2enUtVDhMR2hmWUoyNE5xUEMza2ln?oc=5",
+      "source": "NOTUS \u2014 News of the United States",
+      "published": "2026-02-11T22:01:42-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber\u2019s stock falls as record demand for rides fails to deliver the profit investors expected - MarketWatch",
+      "link": "https://news.google.com/rss/articles/CBMizANBVV95cUxQaVRUMnJQR1IxSGR5SzRwZUhmSk9XTHFXRU94TXhmdU44UXhpY1dqZDFnMU1BOHZnVS1USHlPNDZYS0lEc1hqT0pMcXplcWFfWDZGZXg2MHQ0ZzE3aUEwN2tWQ0Y3LTVMa1F6QUxvU3F1ZEZuRDZVQlE5S0ZZWF9mcjZUYVFib3oxUGxwZFlJVWdwdERUb3dQYTJGenE4eDBVNkZqWU0tSWZ3Tjh6WWt6VjhCSFBWUlo4YnZtbGdMdWloSmJYd0doWjFrODlpY3RkNVYzd1lsV0M1Vks0RGg5aGh6NVVkZUFpY3ktZjZ0a0szWmpIenBsT2pPd2x1MGhVNEpMTUlpWFhha3hRNWRtSnpYSS0tRnctUHdwdEhWbFVYeDhYY0tCZThHWTNGZFJBSzlOOUE5MFJhdWFjUUdVX3J5V2k4T0M3SmlnQzA3emhCUURFTUs0WjN1UmEzYkdESlhMRkpUMmxVZ3A2cHFwMGdqeTBWYVd2Y09pME9JVlAzX1JBRWRrM2NjLUNzMUVueFRUeHk3Yl9VR1B5MVVjaFRqWnlFbThpR25zNEVsV1ZOVXRSbmdyQWVHS2l4V05DckZNUG1VZW1ZRDQ5?oc=5",
+      "source": "MarketWatch",
+      "published": "2026-02-04T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber Expands Life360 Deal to Enhance Family Travel: Upside Ahead? - TradingView",
+      "link": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxOVmNqWEgwTXFiZ3NMcTQ3emk0bG5ZRk9QWmV6Q1VhMUJLWUc2UlEyZHpfdm1pTXA2Z1puZ2xEVFJaLUtHeTQxcGRON3p0M3V6OEQtR2pSV0VKUE1FSUdCNGJfa29WSjV3WjllazlDYmJtSHlPSWZfbkRkLUdPQ0lRUXdYSUF0amJSNzhRZDcxNG0zeVdya2FPc1A5Z3hwakdVTGpaRlQ2M1ZqcE5QVk96WDl5N3RJbmtzYXRn?oc=5",
+      "source": "TradingView",
+      "published": "2026-02-19T07:46:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Jim Cramer Discusses \u201cOver Trading\u201d In Uber (UBER) Stock - Insider Monkey",
+      "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxNV2hmMG9VYkpqRnpTZTM3dXlzanBaU052TlE2cmVuTzM3REZCSk9reVFtWVdRbV9FdC1PQkUyeUZuamM4Q0V3cHE0WmFhUWt0dndrYVhZd2NNOHhQTFZfYW8xRDlDRnR4UkQyQWlBZ2JyNVUwc3BhOUVtTzBIZlFxdG1rN0ZkV2M4U3ROVElCaGtXaXRQa2FrYy1maW3SAaQBQVVfeXFMTVYwZzM4WmtqUl9OQndOc0xlc3pJNXktTGFlQ0JsZ09obnd0cFMyUXBFQnNfNnByR0pINzRSWl8tcDN1Wll0YWxFTWhVWXFfX1VqNXdsX3JQS3dYWExuTUR6OEhsLTVfbTBtSjRvcDc0WC0zTGk2TERqRkppeUp2eE5lU1czSDhrejNiQlJreTNMWTlrRnFUdGtjVW9aXzdFWFNCNWE?oc=5",
+      "source": "Insider Monkey",
+      "published": "2026-02-18T11:52:37-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber Stock Drops 6.4% This Week After Earnings Miss and Robotaxi Expansion - 24/7 Wall St.",
+      "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxNcnRpOWtzZUlWQU1TOHBOVzNzWWdYbDZybWNtLXNhWTV0ZTNTQTNrUlE3ZG02S0NkUkgzQkRQR0pYcVVsSFNPWm5VRGVrcGNUQ05MS0tMV0RwT21qTThzVUthMVBRUUFVSU9EdGliVk5QV2dYNE53eHVZeXdwRUZNODJzTEJWbFJhblhnQTRadk1zb0JLOXA5MXJkdy15Nk5kd3JvZS1pempRa1VWaHpaUmZIWXh2VWZu?oc=5",
+      "source": "24/7 Wall St.",
+      "published": "2026-02-14T15:20:34-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "3 Reasons to Buy Uber Stock Like There's No Tomorrow - The Motley Fool",
+      "link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxPRzZVMTBoY0dWWlRVanNjT09Kd2pfNzVrNDM4YjUwZnlKLUhfeXRsVEJXTXM4ZTZyUjFFQ0lRVndvNUJ6Q05PcVNrUlMtdFZzbXVRZGtUb0VXUmdoVzFRRW53bUdoTVpoYXZKcy13cF84SVE4UkVjYmI3aDhsY3lQUnNCRGJhYXlkQWRuaWZoVXNVd0dtUzh3Qg?oc=5",
+      "source": "The Motley Fool",
+      "published": "2026-02-01T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Should You Buy Uber Stock Now for a \u2018Multitrillion-Dollar\u2019 Opportunity in Robotaxis? - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxNRXRYRjF4NkVUNlM0c2Q4WlBqOEtTOXIzOU5iYnZPa0xzdGJfMnNpaklGUWlIOE5NeEFHYmdEbVJGQXBLQnZucDdGNElRdzFvUVpsaXFiSktMekxMa0l0SV9pTS1JMVMwLW1jTURrTDZIMHJHWktSVGtXaG94ejRIUFoyMnA?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2026-02-07T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber shares pressured by profit outlook but gaining traction on AV ambitions (UBER:NYSE) - Seeking Alpha",
+      "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxPdXBiZFAyU2tVYnlablJ3WHI0WGRFeUMzU2F4d0tMWF9TbXUyVTY0ZzBSTWZVWWhTT1FaSGI1My1KWWJHamVObEFCSDVUWlEzcmxqaEVrc0pkN05qWGZUQlJJcm1mVTRJaWx2UzN6MFB5VVpza1U4cFZsT3JlMndCekJPdUlhOEx6SXpBS1p6QkpnWkRYVFo2bTEyUEI3Vk9RY1hrcEJlWDRhY1VmRjJTUjRYb2o?oc=5",
+      "source": "Seeking Alpha",
+      "published": "2026-02-04T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Down 30%, Here Are 3 Reasons to Buy This Unstoppable Growth Stock - The Motley Fool",
+      "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxNbTh3a2xaQmZQZXA0YVFOME9JUlBEV2VxY2toLU1sa0lLSGloYW1qWlY3dFhJa043MTVoWGdQOWI0UGRMLWIxUElUNG5lUTJVc1lsS0J1dWZKTktLZ3JoSENlZ3d6RGZOUUxLaFpBNXQwRWdyNTNQMFpCUW1hY3g1SFFuandvU2JFU3hTSUVDaGdDREk?oc=5",
+      "source": "The Motley Fool",
+      "published": "2026-02-17T09:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber stock down on outlook miss; CEO sees robotaxi rollout as 'multitrillion-dollar' opportunity - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxNS1p1NkVnVHBVdDd6Y3llc0J5Ty1kQkF4blMzc20tZGUzY2xGZUhweWxjVXZjWFF1UWZHakphUTA4TXJtNmFNY1p6QzhTbVV2cmdpYWsxb0JpOEZNV2xMR29URkViNUxCT0tMQ3k5bWFCbFFTSEJ5SWE1Z2dEbkNYbjRXQ0dmZFAzd1hMNmZQNzh4TkM4QkRxNGtVY1hXVURCUWQ1WVdIOUowZDY3dUJqS1VLd2dzbHJYODhIRGoxenhlc0NPYjBZdUh4NDNueEdYYXkzYTBR?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2026-02-04T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "$UBER stock fell 7% this week. Here's what we see in our data. - Quiver Quantitative",
+      "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOeTBYWXlsQmhSS3FCbUtwa0ZiX0dWdElrUDlzQ2o3LUt4U0g5Y3dVN2V1Uk9LakZyUDNONHplU0l2ZUREMlVGLU16YndfRzI4d0hpVHNnc2FJS3dwdnJJa055OGJoeFlMdmpzcW9MdlFjMTlPRXpLdDRVb29pbUpXWV9uOWtILU1tQlZEeXdTRnhCMlA0TXY1MWFnckRiZmhrNFE?oc=5",
+      "source": "Quiver Quantitative",
+      "published": "2026-02-14T10:38:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Quant ratings on Bill Ackman\u2019s Pershing Square Q4 holdings: BN, UBER, AMZN, GOOG, META - Seeking Alpha",
+      "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxPclQyaXVIR19LdVJDTG5odnU5c2FWeURVM2s2czhMZU02N2lFa2FlMnhWWmJ6dnFIVFlIRENuT0lNcm5ZLW1PLVpJYTJjcUJXelo5SjJQWWttWlJybDlyMU13NEw3bGVJVmtDTWg3TTI2Q0t5MjBWTnFuR2twQVVYWW9rT05NYm5fWUs4QkZ2QVFlSjIxa2w3ZFBmNVRHbWJPd3FmUnpVc2pHVVlqa2FVTDVGZjA1QU9lUnc?oc=5",
+      "source": "Seeking Alpha",
+      "published": "2026-02-18T08:05:08-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "How Should Investors Approach UBER Stock Post Q4 Earnings Miss? - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxObHN3THF6aVo0bUlXcmI3Y0FJeWRid1F0Qm9MR0REQ2Z6Qm53REphS09oOHFDRjN0eU5YcXFKcmdPYWZqRFdweUtBbVJ6SmFuQkszdzVsUGJLX3hMZG43ck9HLTZFSHo1M3Z6TGs3bjFLR25kMW9UZXZ6SzdEWGhxUVA3V3BXa3M?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2026-02-06T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Assessing Uber Technologies (UBER) Valuation After Recent Share Price Weakness - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxNRnl4NTZKYktRcVc5MS0wQTRlckh1R2xOT2tpaWpIdlF1SDRwdkR6TTNSbFYyTGNZNEk3OUFPYUZpRDhmN3UwMUlkZkxkZ1FibWsydklfYjlOd2FtRmlVVk51Q0RTN2NDeGJSSlVjYWVjOVhpbjZ5cEtsdmxfeWFWdFFkY05yYVdpTjZOM3IwQllyQQ?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2026-02-17T10:10:45-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber Technologies (UBER) Stock: Surges 2.7% as $100M Robotaxi Charging Push Gains Momentum - CoinCentral",
+      "link": "https://news.google.com/rss/articles/CBMirwFBVV95cUxPR0VKaDFqWGdoVjkzZHhvQnFJdzFNTExhZHlneTVORWZubkJ3ZUdGa3VPWW4wRWlIZS1PRTlCMUQ0OFF2U2hwNTNUbXQwY3YzOWFrQlZCZlpWUnZpaFlJc2Y4aW9tazdxMEdxa0hGenVDbGg4bE1PTXZ6Sl8wS2RLYmxxaW81bF8xb3RtNEdIQmtmZ0JIWnprZ0J3ME1XcGdrUGhaanBPV2hZbkpNZF9z?oc=5",
+      "source": "CoinCentral",
+      "published": "2026-02-18T10:15:27-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber stock: Tuesday test looms after Uber Eats targets $1 billion boost in Europe - TechStock\u00b2",
+      "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxNTVZQVjNPek1Jd2hpSFc5aFRUVWRsS0pfZjhrRTlDTnBQOTdRNWdVYnpWUVhkUHdndnJuTVFWLVFmdG1sNFU5VVVxdWszcm5OSTFOQVFWSUtQdzZxNnhzRG0wNVNYelJwYmpFU3ZXQng1ekJaZGV4T2hINjl0TzQwSFhIN0tVN1NIZUxHaGMtTUVVMHNxSlhEYVRiUE1DTFZvY1E?oc=5",
+      "source": "TechStock\u00b2",
+      "published": "2026-02-16T13:44:29-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Our Uber Stock Pick Has Had a Bumpy Ride. Stay Buckled In. - Barron's",
+      "link": "https://news.google.com/rss/articles/CBMi5AJBVV95cUxPYUdzaVc0VkY1M0JFY29Hc2JpYkJKRThScjhOUElnQUVMYmV6d1FSRS1nQVBLZ1MyWE84X2JaMWU0YVI3WktLR0pVd0NKM3FWZXM3NzVSbUVUUmUyVEJmN3lUelNaTlVsTU44Nm10andzN1h1OFRDMENzQXRXMll0bHZYUHBnSXVwUk05TlNFV2xnS1pUU3hpbDkydkpwa3ZuTjRCSU9tSUgxVkFhdFFUNENPbF9BODE3YU9WUzJwNFFWWjhVd09ZVHdoRzZMcTNSTnBjb1dZc0x4c2d2QV90ak1KVjE2MlR0R0MtVG1qc0ZweDlwSjdsVXdrMDI2Y21la0lCSXJkQjFyU1A3a2tGTmc3cDU5N1NCLU1kSFhleUIxVE93dFVnMFdYZENvS1MtclFrSGd0VTQybjR6TnQ0RDNoWVpKQmhwcHNRMkE2WXI1UVZHbjJISnk3NlpQVkdqNEt0MA?oc=5",
+      "source": "Barron's",
+      "published": "2026-01-06T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Dara Khosrowshahi Just Delivered Incredible News for Uber Stock Investors - Nasdaq",
+      "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxPV0hiOFRMUUlvVE5xbDlYQkRmMU5MLWhNaWJ3VDBTS2tGZHFqQm80UTM4Zy1jTGNkaWZzSk00M2dpOGRXdU9JMzBNUE5hdXdjUVBjckhDVTJnMlZ2X2xvUGQzYTY1cUtXWFU4bDlXRVFzYzBScGdIbTNyb2RMOVdZcF9fTS1wVjVPNzBxZUF3Q2IzUlFlX2pyRUg3Nkg1ZC0tVHJn?oc=5",
+      "source": "Nasdaq",
+      "published": "2026-02-08T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "What Are 3 Great Tech Stocks to Buy Right Now? - The Motley Fool",
+      "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxQR0hmSWRpZ2ZEbTQ3aWpJT3RBZ2Q3WUNwX3QzS25LUVM1QjNYeWtLc3c5YWFPSHIwYXBoUkhwY3RiUHdfQ1Y4ME1LanZzVThtbGdqWXdqamZKbHZGSDRaWXZKS0NrelY5YXl0Q2FRWDA0RUYwaGJQaU80YkhiWTVVQ0w4TTNRM3hsUV9NTG9wQUxRQQ?oc=5",
+      "source": "The Motley Fool",
+      "published": "2026-02-17T03:51:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber stock falls after earnings: What has Wall Street worried - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxQTHp3a08xZXZtUVRHUHJlNklwN2NTWF91ZVZHdXRBSmt3NWpOZFNuVEhIQVRyWkpsWW5IQU9Jb3JCZjZfVGVSSlZuRUJZUk9PWXdtVDhSN3RnQlFJQmdXNnVhQjd4d2t4Rk1SVTdwQThqenY3RWZvRUJpMVh1SlBUNEpTZw?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2026-02-04T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber Stocks Climb As Ride-Hailing Giant Pours $100 Million Into New Robotaxi Charging Hubs - Benzinga",
+      "link": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxQTG9xdXF1LWpnNFJ5SWZMLU83T2NhZUd5NmJzWjBuTmJrN3BrdEpDcGctcS1rSTA0elB4THhPTS1qTXdKZElibS13ZWRtN2J0a3RWWGtIaDRRVENkYTdXRC1JZmZBcmk2NTJPekx1NnFDMzdhMU9kY292SElZSk9zZXI1TzR4bWxtSHYzenBuX1lUaHROOXVnaGhqMDRuRjlJb3ZSMmV2R1d5U3ZOcVFTTjFIQUlUaDJ4ZWVZQmsxd1lyUHp4QnAxcVBQdzdlclpUZHl4cXBOTTJWZw?oc=5",
+      "source": "Benzinga",
+      "published": "2026-02-18T12:33:21-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Where Will Uber Stock Be in 5 Years? - The Motley Fool",
+      "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxQaklveXFEUVpXako1OXFhVExySWFCNzZuOGhSUnVOQjdhdjhRTm9KWkNUY1kydXduTjFCNEVOejFxOU9TZXNEZ18zTVZObFlTWGhsUFpoRmRkSW1wUUtySnNWTkZjY2RLbHRzX3dDRUdLWlpMTmZOcDBhY3J3Y0llRnVBQko?oc=5",
+      "source": "The Motley Fool",
+      "published": "2026-01-04T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "UBER Stock Price Decreases 9% in 3 Months: Should You Buy the Dip? - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMif0FVX3lxTE5ESXhXMXUzTnpfcnJkSEJtaUtRM1JoWi1KelNuZkVBdi1lWHB5U0pubzBZU1FEVGN2blhKVFJGdEpKNXRlZWZvSUJSLXlieEZyajgwUFVwLWZXM3JHSHM4SFIzQ3daNTlOWXdnNGlGcEFIM2ItTnJJREx0N1hod3c?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2026-01-20T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber and Life360 to allow for greater platform integration (UBER:NYSE) - Seeking Alpha",
+      "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxPcW1fbVZ5N1d4bEdFeEpOSXhYY1J6b3ZfR0twNnp5RUdybWQ5ZDFXN3UycGhkQi1ITTZzNGpKSG9fVVJZMXZiNUpqT0pWX0dnbThuLXFwVHBvNWZJd1NoazJCS0dvWDc4YWxnNVN2T21SX0dYNDcxRUxEbVpoOExDTXJsLW02R3BIeDBhWmtaRDVYTHczZGZRX1BfWDc?oc=5",
+      "source": "Seeking Alpha",
+      "published": "2026-02-17T13:21:21-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "What Would Have to Go Right for Uber Stock to Double From Here? - The Motley Fool",
+      "link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxNN3YzSDBWOWJvem1oWVhfUjBCYUVhTkdEei03MDBZVXRJdEhmbU9LSW5tMDFjcl93c1M5bFAxZmhuUWtkbXBfRDVESjBlcmdEU0cyWEtPSXBEcTlnSlBFc3BraXRRUjBwdmd4N3VkaXdpZ0VwRjNncjFKeG5GMXBDLTQycGRERnBoRjA4ZW1wSzhQQy05Y1JCTQ?oc=5",
+      "source": "The Motley Fool",
+      "published": "2026-01-18T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber Is Sinking Over $100 Million Into Charging Stations for Self-Driving Cars - Gizmodo",
+      "link": "https://news.google.com/rss/articles/CBMirAFBVV95cUxQd1FRZjVkdVdvVUU2Y3BxLUU2SXZOMzFTdlFCdmtvbXpYaEk3SVVzckJQUk5ZeFdmaEJjR2JOUF9wRkV3M2pQbVB1bS1XNjRFRURRSUtVU1BUMzRoN1lyVERCRGpIWUk4RkdfSmo5NjZVc09ONlk3cVNlYWwybVhNLS1xVkpaNGtGUzZCMVpUa0E4aU9wVm1xMXFySkVZaS1XR1N4M3ZRR19rS3RV?oc=5",
+      "source": "Gizmodo",
+      "published": "2026-02-18T16:30:51-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber Earnings: Network Effect Is Strengthening, but Future AV Impact Remains Uncertain - Morningstar Canada",
+      "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxOYUNTblhJRktvVWdrc1JjYlE0RFUyZFJpa3RJcm5pR1EzUER0OWdqRTNQMTJfbDlXV1hhSmRZdndZZjNlNFdsNU9HM2d6cjhoVElPZVdyUmUxT0R5RGdvVVZhS2pNM0ZqbTJUNGV6UHlXbDZ2MlEtZ0psXzhjeXBYd1ctbFNVakZLZmVNaWU5RWY5cXVldDA0cG04SmU2UWVJajdXajV5d2tzWkdmeEJ2QWJrS0xLLUN6LTFENzVIYTlQQQ?oc=5",
+      "source": "Morningstar Canada",
+      "published": "2026-02-05T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Where Will Uber Stock Be in 5 Years? - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTE41ZGdOY2FJTHVNU2s4RWVmWGtMcHF5MzBnMXdCNjJkUkZoUzJQRzdYb3lIWjNMNC1pb2FlM2dOLTlEdXlZQlZoZFpUU1U0UFpQRWpSZHNwbzhFTVowcUx6RE5lRHJQUklTWnNpOUlNeFgzLUl5a214M2NB?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2026-01-04T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber stock price edges higher as $100 million robotaxi charging push lands on investors\u2019 screens - Bez Kabli",
+      "link": "https://news.google.com/rss/articles/CBMivAFBVV95cUxOdjh2MFFFTlg1dFJHTHBXb2J0ckJUNnl3R1FDT2JlakN6bHQtNmRpRDh3V2pvTTFTQTdCaVFhZ25ibHc5dUxFTnVILXJVVzAxckZROVRqdGtpWDI3amk0YWVZX2xsMUR5bTVfcThha1d6SVVpaUdyTEN0WDdSNU1qc1pIWHJteG1UY3Y2SFk0WTFTYWRPWnNJZ0I0MmNaSnVGbU5zZmgzeEMyVVJrN0RCaXl0c1MzOUVraW5yRg?oc=5",
+      "source": "Bez Kabli",
+      "published": "2026-02-19T14:35:42-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Earnings Preview: Uber Technologies (UBER) Q4 Earnings Expected to Decline - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMijgFBVV95cUxQdHBFeDZYOExnSjhZZEN1MGVRQkwyQ0tib3MtZnpJNDVNb1AteFN3ZTJsSnRUbGN5aGxzcTFmamIxT0lpRkg1bGJlbUZiaGtjUTJBUXhsV0ZMX29FMzFES1ZaTGd2bm5hRjRxbzU2Zk40NHJIaWRTdzN0X0VtS1l2ZS1yNnRpX0NxLXJBMS1n?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2026-01-28T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Billionaire Bill Ackman Is Betting Big on AI -- and He Just Revealed a New $2 Billion Investment - The Motley Fool",
+      "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxPQmwzYWdHdWwyelhLMkZSV2FjTmxIQzhkV2dfNzZfSEpLNF9QdUJYWFJadTMzcndFVmtrdW1IUFFRamtGZDR5dnBmN0ItbHRrWlNEWE1lV201WUxHVnpQaFJoamNwZnl4LXA0LXBOejU5U1BfSVhVVFdQbGpIN2ZHV0ZnTkxGRmUtQlZGdWo5cC1sa09xa2c?oc=5",
+      "source": "The Motley Fool",
+      "published": "2026-02-17T04:06:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber Stock Plunges After Top Analyst Downgrade To 'Sell' Rating - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMiggFBVV95cUxOa09vc2wydmNoNjFYcnRJRTJmSkR6TFoxVC1DZC03WUNUWHc3bm02VHpwNDd1am1fSm5nMnZJWGZoZHBJOVl3c3NsZ0pFX0hnTEpjT1R6VnpwLWFQQzJmeGdGTm9ITjlkbmw5d29zbTIzT2hyZ3lqTTBnSzdCZVBHN21B?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2026-01-05T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber stock drops 4% as French driver-status dispute returns ahead of earnings - TechStock\u00b2",
+      "link": "https://news.google.com/rss/articles/CBMingFBVV95cUxNSnJ2Q1lNWlFOX1ludVFhaHZZUWdmNFdrc1BvSXNBYXRtdVRZNG0tTUI5ajRfbTF6ZTV6VWN5NEI3NjhPeTVTbmx5cmdsRk1tRkZzdzJ4V1VvUzQzeHQyR0F3cWZtSDQzTFF6VDJfWmREbkZCcFUyX3N3cVdhaHVnZmVQZVQySEdpQjZnbl9FRllEM0pycjYtUmg1UjNVUQ?oc=5",
+      "source": "TechStock\u00b2",
+      "published": "2026-02-03T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber (UBER) Stock; Gains as Company Pledges $100M for Robotaxi Charging Hubs - CoinCentral",
+      "link": "https://news.google.com/rss/articles/CBMipAFBVV95cUxOWEpUNDZaaHo5M0tTb3J3QW9NWXI1VHJaMW1sZjBZNm92NUZsSDVfMVJLTTZGTW91X1pJVXZ5MmdIQXJpdzYyYlU3NVlROEdkUHBZdm01ZXlWTGxtN2J3Tm9PMVkxcnpzelo0cTllZ1hXNkM2MXZSN2JXQWE5N1J0VjRYVTRHVElYbHViV0J4YnRjTEx1LTFhTUpqTVlFMzVldnJUTA?oc=5",
+      "source": "CoinCentral",
+      "published": "2026-02-19T01:39:24-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "UBER: Guggenheim Lowers Price Target While Maintaining Buy Ratin - GuruFocus",
+      "link": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxOcXoxTjhKc01JZWt6N2E4OVBpQU9QQ3hib0ZLdkV6RnBKRkFSOUVlTGstNDFzVDgxb0RDTVNRN3VDNVVWUWl3VGU2X1RENkxOQ09zbTFLNnc2TWN2VnlUT3hDYmdENmF1aUluMVAtRDRwYjQxei1PMk5lNjhxV1VEUVNCekpJV1ByZzBOclFBd3dqQVU2dWQ2bEhENllveFFSdjlab1hDTlNlaFZSSkFtS1l2Nnp3RFplQ3pV?oc=5",
+      "source": "GuruFocus",
+      "published": "2026-02-18T09:46:23-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber Stock Continues To Slide: What's Driving The Weakness? - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxPMkE0OTdLQlJjMHloVXpzejgxVVI1YUNxa3NHUm5DVUo4SWRZSFZBZ19DaVlSNFBCaGczVVMwNl9mRmwyYm9lN3ViZWNpRDhpOXBFNGFQN2lPTWwyYlk4Wm1ZeEt4MFAzQi00MlpoTzZ0TU1HZjNZUjhQbHgxa0xIQ0xIejE?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2025-12-17T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber Stock Falls 10% on Regulatory and EV Concerns - Forbes",
+      "link": "https://news.google.com/rss/articles/CBMijgFBVV95cUxNd1M2U3YtQklYaVEtNDU5dlNsU2xDYjI0bGZWeklFQTVoWnAySlZUZ2ZsQTlwWVAyX1ZmcVA5dndsSGM2Vmd4SVI3OXdkZF9RSkxaaVMwSWluR0d3bVNaOGJhdm9SU20yTUpoYi1MWEQ1YmtjN3piUFBOLW9FODBsQ0xSdmF6MEFkTUMyM09n?oc=5",
+      "source": "Forbes",
+      "published": "2025-12-15T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber Stock Downgraded to Sell as Robo-Taxi Competition Intensifies in 2026 - Barron's",
+      "link": "https://news.google.com/rss/articles/CBMilgNBVV95cUxPRTRHdzBjVWxzbkltU2d3eGtUbEQ4Zkdtb3hCUnJRN2o1OTF2QW04RldHN1lEWGJNV2tMUER5WGFfNnluVFAxT1VYdHhsWUI2b1p2aFBoRWJ6S1E4UGs1UVpmZlNSNzVBVjhuU2t6T2doMk9jLXVjT3RTVTVKTXRYbks4YmRkdkNrbFJRWm5TQW9ORWcwcWxIR0pva2FfZHBqZWswRTJfRmtUbjhIdk5Fak95dVVJOHNXQlNMemRjU3diekpuSUtFaW5JWDIzRzZKWTJVVDdUbG5odGtkUFFEY1pTdjJhMThJbm53dE16UDFCc0MtcVgxWUY4c2xaaTlaSXR0Z3oxWmFZVjc5Y3pydVlReWxDNThOYkVYV1J2U2N5aFBIdnY3Nl9BMnJISEQwUEd3SE1YenROamh4V2JGSkE4czZkeTl3SW1LZ1dCRWhWSFZYWUlTenBIRDBiZXdFRTRPTkFBNkNwTFM5bkhLa3YwaV9IOUU0QlZzbHhydkxuR09jb01ETTBPNWpJdlZtUnBKM1pn?oc=5",
+      "source": "Barron's",
+      "published": "2026-01-05T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Why Uber (UBER) Shares Are Trading Lower Today - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMif0FVX3lxTE44T2I1Qkx5ZHBkeGJrV1A2d1EtQUtXZHdOZmd5ZGMxdVBGYkc0UVdQbngyVlQteUlGWFYtV1JnVThWM3ZzRGJmdk0wVlRFaFMwbUktLVFBMjdlR21XSndnbmZSYzVOMXpzd214aGNTS05fbjcwWkJJbzc5WjNzR00?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2025-12-10T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "3 Reasons to Buy Uber Stock Like There's No Tomorrow - The Motley Fool",
+      "link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxNMmFpWnItdkkxejFBZU9oUlQxcmVzODE2UkR1aXpHMVU0bzhxN1BiQjVYQXNpcUhQSUFlTmhhVnRpcE15dGh3WmNlTU9WcTBaZGxNT1FHQ25ndVdxVmhaLWk3dG1CUFNJeXE2X1pSS1dfUW4waGNiMW9uclRYZmNSWXVWNmNXRHFoQnFZWWhyRE1zRExYdnpuUA?oc=5",
+      "source": "The Motley Fool",
+      "published": "2025-12-24T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber stock drops 2% as robotaxi deals with Mercedes, Nvidia and Waabi stack up ahead of earnings - TechStock\u00b2",
+      "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxQalVFYjh6TEpiNHZFeWtrZFdCTDlZNE5aa0FIWGhlTlhIQlVmX1QtS0JUbXZ2eFBHM0g4UDBya1dZS0NnVmNudlFFdXhPR3lsVkJQcFdiaW94ZmZmcGd5TkhVNjI5QVZFdnNtcWVvOXI1bEsxZlVUSUgtX1Y3VkFPOFI3VlhPZ2RHWVd4NGh1cFpjZTRCY1Nyc3RkOHl3YXpBb1N0TlJ6el94eUY5YUxnaFo3Y25hUQ?oc=5",
+      "source": "TechStock\u00b2",
+      "published": "2026-01-30T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber (UBER) Stock Trades Up, Here Is Why - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMifEFVX3lxTE4zbm92NHo5bW1iak9IZzlyZ3FITERoS2YzVXpXVUZ5SzB3TlpMR0pBWWljS0F1VHdBYUcxc3FIRmt6c256VWJ6aGlxWEZHRHhnZVloWW4yeWlqVkdXNFdqQWJ6SDFEWG96S1VZbDZCenpZUkl4TVVYV2VxNGo?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2025-12-03T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber to invest $100 million in autonomous vehicle charging hubs for robotaxis By Investing.com - Investing.com",
+      "link": "https://news.google.com/rss/articles/CBMizgFBVV95cUxORVhSeDhyclRTRk9fUG1qMGgwRjVIc2hySngxYWRpOGZiR1dpdkpjLTlSN3c1N3M2U1F6SndTQTFqWmp5ZF9RWDl2SE1Zc2dvWFBkVS1zRFZfNEVYNXJVdnlUMzYzWXVqSjFWY1g4WncwNnhLbnUzY0JfLXhHX2ZMbzhTa3VUUFgtY3gwNm1mT0Vob21yWUNyMXpfaWM2cDZ4SGpFV3VQZm5VSFVjUnZKTnZhUW9wUjhLWUh6TnQxVmRTUW91X0F0S1NxWTlfdw?oc=5",
+      "source": "Investing.com",
+      "published": "2026-02-18T10:10:31-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Why Are Uber (UBER) Shares Soaring Today - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMif0FVX3lxTE5WZllIdjJQZ18tRVNaNEF6Q3BIdDdqMUxRd0REQXFNcEVsTzF3SjJEUWpuV0M1eUJkVG9CYTQySTdMMTVBdFN0d1pKeVVvZzJrUU1hTHlZZUZGMC15YlRxVW13UEJZb1dub1V4YV9ROEk0MGMxUkJ2cjlMeUZoMW8?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2026-01-06T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber Stock Falls Despite Q3 Earnings Beat, Strong Rides Demand - Investor's Business Daily",
+      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxQYmlNMGdKRDJLeWRtelJ3MlVPXzFaTUE3VDdOQUFYYXFtMDRRMnlJWnJNZ3IzY0lIcVdDall0NEVuSzExdjdqeWJQLW12UUIyOTVjMDdVTUw4NDc2amFMMzZaR0ZESWZ2Q1h1U0tlQ0RZeC1VRzRrUjJQdU1GSkplVVN2Y3RGRjA?oc=5",
+      "source": "Investor's Business Daily",
+      "published": "2025-11-04T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Canaccord Genuity lowers Uber stock price target to $72 from $84 - Investing.com",
+      "link": "https://news.google.com/rss/articles/CBMivwFBVV95cUxPR3NYbllaYTRDdzA1Tklnd0I4QWpUQkhIaEUxTjNOdHJYRTYxMnF1c1ZKU1NudWpGWVRKdElsdUFucEtoWkZHd2w4OGV2YmtkTXRlSUxxRXBGYzBISkZyWTRlVGwyMWNTa2dTblBqU1BkU2gzeDFOcmlDQkJOZEtRN2tXbWQtcHlET05WRWU3ekk0aE9tNUZyREt1YTJwcURBM3dsSGlTOF9PSnF1MHh4TG0xZVpxaWx3TElPbWFjZw?oc=5",
+      "source": "Investing.com",
+      "published": "2026-02-05T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Why Nvidia's Robotaxi Offensive Could Be Good News For Uber - Investor's Business Daily",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE5CRUNERXFTa0dIQ0pNaTRKTEZsV3p0V3FiTTJuSy0tcHotdHg2V21fbm10QTVmUUVqaHBMMXNRbklJWWlSQUpmaHRLWVhxTFFpemdROTcyaDA5YzVfcDJjcDRrN21IdFJkR0tTVXBDSEEyeFhDdTNB?oc=5",
+      "source": "Investor's Business Daily",
+      "published": "2026-01-07T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Benchmark reiterates Hold rating on Uber stock amid mixed signals - Investing.com",
+      "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxNczBXc3ljTHRVNEkzYzB5eHU0VXFMSFpMejZxb1Bmci1lM3VQblVpN0FleTJBVHFlZEFTcEFxTFhjRG1kQ0d3VUZjdVNYUjRxcXo5bEd3WXNKel9ZU0w5RmdJMTZma1BlU1JMM282aXpZb1FqTkFTTllnYnpZOXIxWmE1eDFsRXF1QU4zekZ6WDdGZ2w4NmVkQkxZY1N4TWI5elltZFpFSmtNLU84Q3pFMXdSV2VCTGVhUVE4NkFOR1JZcmc?oc=5",
+      "source": "Investing.com",
+      "published": "2026-02-06T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "After Earnings, Is Uber Stock a Buy, a Sell, or Fairly Valued? - Morningstar",
+      "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQVTliZURFTndaNEF5OXpWV29Wd1VJVFBVdFNMclhTZWNaUHQwdG9iMzZqd1BRNUtiQTJfWHJpdjhuVEJWcVVBRWJnWW80SHlSaVNxX05DdXFaR0VLVXg0LXVDTVpIN01qS3FfUHRSRmQ4Qlc5NFo4NWhSTThKb05DVUZMZEZkM1psTlBjNmF1QllwMno0UXc?oc=5",
+      "source": "Morningstar",
+      "published": "2025-11-11T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber stock dips despite strong Q3 earnings with Wall Street wanting more - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxOQUlybFBpMUR5RThrWEFOVGJsdUFNNmY2NTl6N0QtckhVSWFoREV2WEFzNS1SY2F5b0hkcjkyUEkwY29oZ3FMZUJXZ2lCRUN0eUphX01nUEUyMFlCOHNpb2xxV19HRzVPazRtUUVFMjQ3TUlvelpuZzJJazZPNlUzMUNCV0lvZmF0cEw3ZjZzci1iZFpZT2dsZFE4ZUFodzVkNGxuclgyd2VLUGZUdEtmN0JnM1BUUDNmV1E?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2025-11-04T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber Stock in 2026: 3 Critical Factors Investors Can't Ignore - The Motley Fool",
+      "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQVmVON3h6R1BQTUxKemRxXzZOQ2JMVXVnc1RGeF8za0xlaTUzeDh5SFpGenFNMWhJbkZ4SDB3dWcwTXUzekRObS1HSzVVU0IxaDBWLVQ2YnZiX3BqOWp0VGY4TmpoQVRCVklTUXRXZWs4dW5ZeW51a29adjczQU5odFF1d01iVzcyUENPdXZyMDhGYVRy?oc=5",
+      "source": "The Motley Fool",
+      "published": "2025-12-20T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "What to Know Before Buying Uber Stock - The Motley Fool",
+      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxOMUktQjA3MkxFY1pDQnpqam9fZUNPdkd0M0EyeElBSVlaTE1nVmpZZDZSekRiN1k3S29ra1VZOTBSR3pvTUljdkpEbHRqekxIVThPY3ZTdU40WDJhSUFfWkRadktvTkpWMjBfZkNKZVVkQ2p0ZWp4eU81TkZCb1FTNDd2UkYyMnc?oc=5",
+      "source": "The Motley Fool",
+      "published": "2025-11-22T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber Stock Gains With Q3 Earnings On Deck. Here's What To Watch. - Investor's Business Daily",
+      "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxNc29tZ1owTTVzSVU1OTYxUTF0MHBHb1Y3aldsc3hiRE04cTBpcXlwU0tvendwYWNyd1V6cDhBV2RCYWZYc182TW41VFZHb2l6N1hjZ1FLV1Y5Ym8xakd1VzljQVFleS1OZmdaSHBkRDVlM1h6cU5tOTljVktWNDRtRURqaEQ?oc=5",
+      "source": "Investor's Business Daily",
+      "published": "2025-11-03T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "New Uber\u2013Life360 link lets parents track every teen ride in real time - Stock Titan",
+      "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxPQlpmdFA4eF9hazFVeDB6clNPY0JEblFnaFRCdTRyUVFuWDBkLUIycElfdTdRSmVraVlaQ0IzMDVxYmwzRi1PTnhwVTBxM1pzQUZzMmpROE1EMUZoX3BPYnd1bjJGdEdlb3VFWThPVng5SUtiQW9vaENkZXl4Z3l6Z1FzTnc3UloyUVR4MmFWeFJHQ3Z5SkVoZnllSlZ1RGl0ZHFlYXdHU09hdUVaMkthbGpmbUNMbTdm?oc=5",
+      "source": "Stock Titan",
+      "published": "2026-02-17T12:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "UBER Stock Price Decreases 9% in 3 Months: Should You Buy the Dip? - Zacks Investment Research",
+      "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxQVlRHMjF6NElDYW5uWGVRbEt1a3p5em42S3FuaUZfb0kxbzhsRzRYNHZXVlF4bTBaMnlvdEtERV84SVZoYngtMXNTN21JX1VPSXFPRXZOTmpUU2o0bTJKeE9lbzdrbndUaWYyb2tfS1NWVWlMLXlkUkpuSVVyd1ZmelFGYmJqajJ6QVhrNzEzbDQzSy1BMHZNMUExd2w3d0x4dUl3c1FPYw?oc=5",
+      "source": "Zacks Investment Research",
+      "published": "2026-01-20T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber stock edges higher today as Evercore keeps $150 target and NYC tipping rules hit delivery apps - TechStock\u00b2",
+      "link": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxNMXRxdC1QRmVVakM1WlRMa0M1ZDJwQ1JhX1pTa3hRRDJyUWJ3cFJMSHVicDNJX1JVc0Q3WTlSNDYyaTg1ck4wNGZuRlllRVdUZFJMbkFFVGxROGtIQXAzRHNmX1BYbzdDeElsRERDcDdzanRnM1Z5MEthbVVjemZwWkE3MlNNWjdrRFpZcHVKY1dIa3c4VUQxWjByTUQ4eEtJMGNNcEVMUFM1VDRVMDdjRDVEMWJQU1hWa2dN?oc=5",
+      "source": "TechStock\u00b2",
+      "published": "2026-01-26T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber Q4 Earnings: Potential Risks And Robotaxis Stepping Stones (UBER) - Seeking Alpha",
+      "link": "https://news.google.com/rss/articles/CBMipgFBVV95cUxNRm1NSjdJSHJlRHlXNHJYQTcxOG1HWjMwbXFMdDloaXJqaTgzSWVCWmJZZjEyWWJTX28zX0dsbUVUellncUhoWkVvSmUyM0xka013VVVGX1Jzb21jdThCXzRua0lBQ1ZxczdoeVdWNk9RVU5RN21RRTVrSEZwaFhJQm85N2d5czQ4Q3c5ejJ5VUkzcEJpTTBPUzBTbUZ1NWIyVnQyQmFB?oc=5",
+      "source": "Seeking Alpha",
+      "published": "2026-01-30T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Baidu and Uber Stock Rises After Partnership to Test Robotaxis in London - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxOOXFCV2R4UmdZc2RmaU1ZdVIzMFg0WGZmbTJlMU1JNUVTcS1ZWURLT2pyT0JDSjU3NnBfaEUwdURtVFdtSzlGTUFtSGZ5NjBITDVjaG1KRXhBYWdOZWloOUxsdkI4dTlPeFFnX2o4OEVBVThoajhfaTNEOUgwenhWYlNPVzNqNk0?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2025-12-22T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber stock price drops after NYC orders $3.5 million Uber Eats payout, robotaxi deals stay in focus - TechStock\u00b2",
+      "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxPX2dHVThYTm1MdmFjaHZhTm1ZZTZER2V4TUtjMi1VNHlTMXhZTk9yU2tzWXpMSS1vbWxwem9FWm9jV21aQ0NxaG9wTGhVVEZQUlhaZHh1bnpzSzBqTmhyaXUzLUNDTFNDVjlHTWtLTWNHRkJTT2VvUkt0bjkwY0ozaWZqN0xHYTNVMFB2TXpvTFp4Z200TmVWcTAwZ21fcF9VQzFFNW1fYmJBX1F2eEtxNUZCdTVUVUZOemc?oc=5",
+      "source": "TechStock\u00b2",
+      "published": "2026-01-30T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Where Will Uber Stock Be in 5 Years? - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTE5sd2ZDVHFoTi1GSmU5c1RQdWxCblZELTMwa0Q2dTBrb3dZdF9GTkk1bUk5ZjlISW96QkxON2NHVEFPcTNCOVVWTVltclFqQXk4Q0hGWjJjd2d2Rk82YUVOTGZTSmx6eE9NdzUxUndaVUpkLXhrRHotallB?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2025-10-23T02:00:00-05:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "What to Know Before Buying Uber Stock - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE13dlU5NVpPLXVIdE9haDBHSnNsUXBJMnVwN3ZPN293d0Y5M0VaWjhia1g2eVpLUkZHNDR5dURscFhpdGd2YXJmSnN0TWFoV2lybXlKYXBTNnd3V1RwUnhqcHIwel9POGZZdERTbnFqQS1UZmRiV3VR?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2025-11-22T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber stock drops 6.4% this week after earnings miss and robotaxi expansion - MSN",
+      "link": "https://news.google.com/rss/articles/CBMi5gFBVV95cUxNLTlLZjJEU09IQXd5aTlYVzRUMzNYR3UzTFRTOUt5YlNLeEFSV0hickdOZ0IxU3JfamVPYTVDYUZiZDRHVkRuSDE1T09QZTdKb1dIck5ub3BEaU02RUQ1dU9uc3IzZXB5SlE3Q241YUZ3LXRhZ1JKWmlUT0JQY2ZyYkFGUjBXNmdPdWdSdEhSN0NRLVJ4WFlLemk0SExid2tnQ3lCQTVpbGhaZGRnanY1bkhwcnRRT29tTnhyU3JoWGpWdXNfYkk4V0Y0UjUyd1JmblBQWW9mRmdicTVSNlNhTksxT01Idw?oc=5",
+      "source": "MSN",
+      "published": "2026-02-14T16:40:57-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "3 Reasons to Buy Uber Stock Like There's No Tomorrow - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTE5QOTJ1SU8zNUhSekl2a3hqM3VRNWQweER6bWZuR3QzcWlfQUJtc3RDbVhQcTFkT2RUenZDMWNzQkFzLXpPdnV0cE5YSVNyenlwR0F6aUNvOHFkeEs4aGNwRjdQUUZnUDF5Z09IbWdTczNNVFVadXRPTGJR?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2025-10-04T02:00:00-05:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Should You Buy UBER Stock Following Its AV Expansion in the UAE? - Nasdaq",
+      "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxOeHdqTHRuYlNiMndmUnhtSVpQZFFIOUtabXEtYzY2eGRMc0lLajNMQktreVZveUJ4a1J1czFYNG1VaFNuNXJWU1ZXUlVPZ01CTVFLcmNDOWZMT05zTFVTbGNmcnowOWN4eW9jMHVwbzI0RmdjWkdjN0hHSWJEVVR5SWlsZFVEai1vZTh1d28wSmJKUQ?oc=5",
+      "source": "Nasdaq",
+      "published": "2025-12-19T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber Isn't Dead; Robotaxis Won't Be Winner Takes All (Rating Upgrade) - Seeking Alpha",
+      "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxObnp4eHpLb2xRdFR4MkdSVHlxOU1WcU5ReGlBQWM1NmprdFFWVEhtcFhFcEpQSFI4MlM2ZUhIcnlwYTVQMTY4aF9DSWFBZ3MzUE10ZGtSel8tMjhwUFBiUC15Z3lPVTNJWGcxYy1JUUFOU0ZMUERrVmRrSVlxN0Q3U3dLaTRzV1lJeTJVaWFXT0pwQjlSdXdTU0lR?oc=5",
+      "source": "Seeking Alpha",
+      "published": "2026-01-25T02:00:00-06:00"
+    },
+    {
+      "ticker": "UBER",
+      "query": "UBER stock",
+      "title": "Uber Stock Price Prediction: Where Uber Could Be by 2025, 2026, and 2030 - Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMihgFBVV95cUxNTjNkQmNOYWNtR3ZRSy1kSkk3UkZaUFllZjhHWDhMWE0xVGtuTHNISUQwQ3BkMkY4T0JvVDcxQldteWpCZlkzOGhFcEhSWnYwcldTaE15VzBFRV9NbnM3QzRkaXM2NldjWm9HWjAzQzhJbXNsczNNd0RQSnppMjZhOHZkbWJpUQ?oc=5",
+      "source": "Yahoo Finance",
+      "published": "2025-11-22T02:00:00-06:00"
+    }
+  ]
+}

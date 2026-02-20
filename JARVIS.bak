@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+TICKER="${1:-}"
+THESIS="${2:-}"
+
+if [[ -z "$TICKER" || -z "$THESIS" ]]; then
+  echo ""
+  echo 'Usage: JARVIS TICKER "your thesis here"'
+  echo ""
+  exit 1
+fi
+
+TICKER_UPPER="$(echo "$TICKER" | tr '[:lower:]' '[:upper:]')"
+
+echo ""
+echo "🧠 JARVIS ONLINE"
+echo "Ticker: $TICKER_UPPER"
+echo ""
+
+###############################################################################
+# CLEAN EVERYTHING FROM PREVIOUS RUN
+###############################################################################
+
+rm -rf export/CANON_${TICKER_UPPER} 2>/dev/null || true
+rm -f outputs/${TICKER_UPPER}_* 2>/dev/null || true
+rm -f export/${TICKER_UPPER}_* 2>/dev/null || true
+
+###############################################################################
+# BUILD EVERYTHING
+###############################################################################
+
+./scripts/run_thanos.sh "$TICKER_UPPER" "theses/${TICKER_UPPER}_jarvis.json"
+"theses/${TICKER_UPPER}_jarvis.json"
+mkdir -p theses
+cat << JSON > theses/${TICKER_UPPER}_jarvis.json
+{
+  "ticker": "$TICKER_UPPER",
+  "name": "Jarvis thesis",
+  "description": "$THESIS",
+  "claims": []
+}
+JSON
+
+python3 scripts/build_superplus_clean.py \
+  --ticker "$TICKER_UPPER" \
+  --thesis theses/${TICKER_UPPER}_jarvis.json
+
+python3 scripts/build_ironman_hud.py --ticker "$TICKER_UPPER" || true
+python3 scripts/build_time_machine.py --ticker "$TICKER_UPPER" || true
+
+# 3.5) FRIDAY modules (extra crunchy)
+python3 scripts/friday/build_core_metrics.py --ticker "$TICKER_UPPER" || true
+python3 scripts/friday/build_free_news.py --ticker "$TICKER_UPPER" || true
+python3 scripts/build_dcf_engine.py --ticker "$TICKER_UPPER" || true
+
+###############################################################################
+# MOVE TO CANON
+###############################################################################
+
+CANON="export/CANON_${TICKER_UPPER}"
+mkdir -p "$CANON"
+
+mv -f export/${TICKER_UPPER}_SUPERPLUS_CLEAN_Memo.pdf "$CANON/" 2>/dev/null || true
+mv -f export/${TICKER_UPPER}_Full_Investment_Memo.pdf "$CANON/" 2>/dev/null || true
+
+mv -f outputs/decision_dashboard_${TICKER_UPPER}.html "$CANON/" 2>/dev/null || true
+mv -f export/${TICKER_UPPER}_IRONMAN_HUD.html "$CANON/" 2>/dev/null || true
+mv -f export/${TICKER_UPPER}_TIME_MACHINE.html "$CANON/" 2>/dev/null || true
+
+###############################################################################
+# OPEN EXACTLY FOUR FILES
+###############################################################################
+
+/usr/bin/open "$CANON/decision_dashboard_${TICKER_UPPER}.html" || true
+/usr/bin/open "$CANON/${TICKER_UPPER}_SUPERPLUS_CLEAN_Memo.pdf" || true
+/usr/bin/open "$CANON/${TICKER_UPPER}_IRONMAN_HUD.html" || true
+/usr/bin/open "$CANON/${TICKER_UPPER}_TIME_MACHINE.html" || true
+
+echo ""
+echo "✅ DONE"

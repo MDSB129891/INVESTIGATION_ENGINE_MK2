@@ -67,7 +67,7 @@ ul {{ margin: 8px 0 0 18px; }}
   <div class="card">
     <div class="badge">Open</div>
     <ul>
-      <li><a href="{clickpack}">News Clickpack (verify sources)</a></li>
+      <li><a href="{clickpack}">News Clickpack (verify sources)</a> · <a href="claim_evidence_{ticker}.html">⚡ Stormbreaker (Claims)</a></li>
       <li><a href="{memo_md}">Full Memo (Markdown)</a></li>
       <li><a href="../export/{memo_docx}">Full Memo (Word)</a></li>
       <li><a href="../export/{ticker}_Full_Investment_Memo.pdf">Full Memo (PDF)</a></li>

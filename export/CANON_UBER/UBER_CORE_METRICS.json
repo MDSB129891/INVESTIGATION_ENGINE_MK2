@@ -1,0 +1,24 @@
+{
+  "ticker": "UBER",
+  "sources": {
+    "comps_snapshot": "/Users/melsanchez/Documents/GitHub/investment_decision_engine/data/processed/comps_snapshot.csv",
+    "decision_summary": "/Users/melsanchez/Documents/GitHub/investment_decision_engine/outputs/decision_summary.json"
+  },
+  "metrics": {
+    "revenue_ttm_yoy_pct": 18.27959434262585,
+    "fcf_ttm": 9763000000.0,
+    "fcf_margin_ttm_pct": 18.768864025222523,
+    "fcf_yield": 0.0644180305964971,
+    "market_cap": 151556946240.0,
+    "net_debt": 5734000000.0,
+    "score": 83,
+    "rating": "BUY",
+    "bucket_scores": {
+      "cash_level": 21,
+      "valuation": 15,
+      "growth": 16,
+      "quality": 15,
+      "balance_risk": 16
+    }
+  }
+}

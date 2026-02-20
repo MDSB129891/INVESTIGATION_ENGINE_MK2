@@ -24,7 +24,7 @@ fi
 echo ""
 echo "🚀 OPENING ULTRA RESULTS"
 if [ -f "export/${TICKER}_ULTRA_Memo.docx" ]; then open "export/${TICKER}_ULTRA_Memo.docx" || true; fi
-if [ -f "outputs/decision_dashboard_${TICKER}.html" ]; then open "outputs/decision_dashboard_${TICKER}.html" || true; fi
+if [ -f "outputs/decision_dashboard_${TICKER}.html" ]; then # DISABLED (JARVIS controls opening): open "outputs/decision_dashboard_${TICKER}.html" || true; fi
 if [ -f "outputs/news_clickpack_${TICKER}.html" ]; then open "outputs/news_clickpack_${TICKER}.html" || true; fi
 if [ -f "outputs/claim_evidence_${TICKER}.html" ]; then open "outputs/claim_evidence_${TICKER}.html" || true; fi
 '''

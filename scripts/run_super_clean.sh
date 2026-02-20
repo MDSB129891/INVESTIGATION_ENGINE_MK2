@@ -15,5 +15,5 @@ python3 scripts/build_super_clean_memo.py --ticker "$TICKER_UP" --thesis "${THES
 # If you insist on PDF, we can add md->docx->pdf in the next step with python-docx or pandoc.
 echo ""
 echo "OPEN (clean order):"
-[ -f "outputs/decision_dashboard_${TICKER_UP}.html" ] && open "outputs/decision_dashboard_${TICKER_UP}.html" || true
+# DISABLED (JARVIS controls opening): [ -f "outputs/decision_dashboard_${TICKER_UP}.html" ] && open "outputs/decision_dashboard_${TICKER_UP}.html" || true
 [ -f "outputs/${TICKER_UP}_SUPER_CLEAN.md" ] && open "outputs/${TICKER_UP}_SUPER_CLEAN.md" || true

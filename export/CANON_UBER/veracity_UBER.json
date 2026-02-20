@@ -1,17 +1,17 @@
 {
   "ticker": "UBER",
-  "generated_utc": "2026-02-19 17:14 UTC",
-  "rows": 209,
+  "generated_utc": "2026-02-20 03:09 UTC",
+  "rows": 208,
   "url_coverage": 1.0,
   "source_counts": {
     "finnhub": 199,
-    "sec": 10
+    "sec": 9
   },
-  "whitelist_hit_ratio": 0.048,
+  "whitelist_hit_ratio": 0.043,
   "has_sec": true,
   "confidence_score": 52,
   "confidence_details": {
-    "hhi": 0.909
+    "hhi": 0.917
   },
   "must_click": [
     {
@@ -39,6 +39,14 @@
       "impact_score": -2
     },
     {
+      "published_at": "2026-02-09T05:06:13+00:00",
+      "title": "Uber Jury Verdict Raises Fresh Questions On Safety Risks And Valuation",
+      "source": "finnhub",
+      "url": "https://finnhub.io/api/news?id=69206f4dd687e3337706f419a68506e273fd635a31ed4e305434096f75c76838",
+      "risk_tag": "SAFETY",
+      "impact_score": -2
+    },
+    {
       "published_at": "2026-02-10T22:10:18+00:00",
       "title": "Uber Liability Verdict Puts Safety Data And Investor Risks In Focus",
       "source": "finnhub",
@@ -47,12 +55,44 @@
       "impact_score": -2
     },
     {
-      "published_at": "2026-02-09T05:06:13+00:00",
-      "title": "Uber Jury Verdict Raises Fresh Questions On Safety Risks And Valuation",
+      "published_at": "2026-02-09T22:14:09+00:00",
+      "title": "Is Uber Technologies (UBER) Pricing Misaligned After Recent Share Price Pullback?",
       "source": "finnhub",
-      "url": "https://finnhub.io/api/news?id=69206f4dd687e3337706f419a68506e273fd635a31ed4e305434096f75c76838",
-      "risk_tag": "SAFETY",
-      "impact_score": -2
+      "url": "https://finnhub.io/api/news?id=19c44e480e5dd64885f420132cdaab2cf5d743f47e1bd4f2497638e3ff638cda",
+      "risk_tag": "OTHER",
+      "impact_score": 0
+    },
+    {
+      "published_at": "2026-02-09T18:30:50+00:00",
+      "title": "Uber Agrees to Buy Getir's Delivery Business in Turkey",
+      "source": "finnhub",
+      "url": "https://finnhub.io/api/news?id=f5d8f6dc769f53ffc918f93714109a6c5b650b64537bb6d128c130a2fbf0d082",
+      "risk_tag": "OTHER",
+      "impact_score": 0
+    },
+    {
+      "published_at": "2026-02-09T16:35:00+00:00",
+      "title": "Uber Technologies Inc. stock underperforms Monday when compared to competitors",
+      "source": "finnhub",
+      "url": "https://finnhub.io/api/news?id=c10268cda74d5cabe02420f498a6bb736158155a021450b48875179402a53552",
+      "risk_tag": "COMPETITION",
+      "impact_score": 0
+    },
+    {
+      "published_at": "2026-02-09T16:00:18+00:00",
+      "title": "Looking Into Uber Technologies Inc's Recent Short Interest",
+      "source": "finnhub",
+      "url": "https://finnhub.io/api/news?id=bc3903f5d8485a70709a77502390f1724a974fa9d6168f1a4c5475d51b5e1707",
+      "risk_tag": "OTHER",
+      "impact_score": 0
+    },
+    {
+      "published_at": "2026-02-09T15:55:08+00:00",
+      "title": "Michael Grimes returns to Morgan Stanley after Trump administration stint",
+      "source": "finnhub",
+      "url": "https://finnhub.io/api/news?id=861df2bfdccb6f68333b3d04fad9a61aa4759dcc8240bba84707d45622a1c9bd",
+      "risk_tag": "OTHER",
+      "impact_score": 0
     },
     {
       "published_at": "2026-02-09T15:07:03+00:00",
@@ -68,46 +108,6 @@
       "source": "finnhub",
       "url": "https://finnhub.io/api/news?id=3edd120fd0286e362a411f251a73f608d34167b1df107b372ecf9aa24ddbdfe4",
       "risk_tag": "LABOR",
-      "impact_score": 0
-    },
-    {
-      "published_at": "2026-02-09T14:00:06+00:00",
-      "title": "Is Trending Stock Uber Technologies, Inc. (UBER) a Buy Now?",
-      "source": "finnhub",
-      "url": "https://finnhub.io/api/news?id=75cc44762f96028e0c4396d6a94f26ee645a0f82243c351f8227beb2324870e2",
-      "risk_tag": "OTHER",
-      "impact_score": 0
-    },
-    {
-      "published_at": "2026-02-09T13:33:16+00:00",
-      "title": "Live On CNBC, Steve Weiss Announces Sold Uber Technologies",
-      "source": "finnhub",
-      "url": "https://finnhub.io/api/news?id=3e97c1c050b892ed524a99655078f36d7a67c3241696c75b237406cbe85af4e5",
-      "risk_tag": "OTHER",
-      "impact_score": 0
-    },
-    {
-      "published_at": "2026-02-09T13:28:22+00:00",
-      "title": "Super Bowl Commercials 2026: Complete List Of Ads, The Companies Behind Them And Who Won Over Fans",
-      "source": "finnhub",
-      "url": "https://finnhub.io/api/news?id=7b9f3d23019478a5139bd7b8c5db3b313b951d99f63bad37b6c02dbac5c96da9",
-      "risk_tag": "OTHER",
-      "impact_score": 0
-    },
-    {
-      "published_at": "2026-02-09T12:57:44+00:00",
-      "title": "Trade Tracker: Steve Weiss sells Uber and trims Netflix",
-      "source": "finnhub",
-      "url": "https://finnhub.io/api/news?id=fb1af0a6bbfc3a272ac61cfb2e7a2481cc61121c801458f45bec7c2f4bd5f5b4",
-      "risk_tag": "OTHER",
-      "impact_score": 0
-    },
-    {
-      "published_at": "2026-02-09T11:00:18+00:00",
-      "title": "Sen. John W Hickenlooper Has Bought Up to $350K Worth Of Uber Technologies Stock: Here's What You Should Know",
-      "source": "finnhub",
-      "url": "https://finnhub.io/api/news?id=b12fc522507100e6273d4e8680d6cc41fdffdd1f8309988fbe64b6d97d3fb798",
-      "risk_tag": "OTHER",
       "impact_score": 0
     }
   ]

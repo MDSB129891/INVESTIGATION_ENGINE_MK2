@@ -59,7 +59,7 @@ export PEERS="${PEERS_CSV}"
 
 echo
 echo "🚀 OPENING RESULTS (dopamine mode)"
-# open "outputs/decision_dashboard_${TICKER_UC}.html" 2>/dev/null || true  # disabled: no tab spam
+# DISABLED (JARVIS controls opening): # open "outputs/decision_dashboard_${TICKER_UC}.html" 2>/dev/null || true  # disabled: no tab spam
 # open "outputs/news_clickpack_${TICKER_UC}.html" 2>/dev/null || true  # disabled: no tab spam
 # open "export/${TICKER_UC}_Full_Investment_Memo.pdf" 2>/dev/null || true  # disabled: no tab spam
 # open "export/${TICKER_UC}_Full_Investment_Memo.docx" 2>/dev/null || true  # disabled: no tab spam
@@ -102,7 +102,7 @@ if [ -f "export/${TICKER}_BIG_Memo.docx" ]; then open "export/${TICKER}_BIG_Memo
 if [ -f "export/${TICKER}_BIG_Memo.pdf" ]; then open "export/${TICKER}_BIG_Memo.pdf" || true; fi
 
 # Then open the core HTML packs
-if [ -f "outputs/decision_dashboard_${TICKER}.html" ]; then open "outputs/decision_dashboard_${TICKER}.html" || true; fi
+# DISABLED (JARVIS controls opening): if [ -f "outputs/decision_dashboard_${TICKER}.html" ]; then open "outputs/decision_dashboard_${TICKER}.html" || true; fi
 if [ -f "outputs/news_clickpack_${TICKER}.html" ]; then open "outputs/news_clickpack_${TICKER}.html" || true; fi
 if [ -f "outputs/claim_evidence_${TICKER}.html" ]; then open "outputs/claim_evidence_${TICKER}.html" || true; fi
 
@@ -121,7 +121,7 @@ fi
 echo ""
 echo "🚀 OPENING ULTRA RESULTS"
 if [ -f "export/${TICKER}_ULTRA_Memo.docx" ]; then open "export/${TICKER}_ULTRA_Memo.docx" || true; fi
-if [ -f "outputs/decision_dashboard_${TICKER}.html" ]; then open "outputs/decision_dashboard_${TICKER}.html" || true; fi
+# DISABLED (JARVIS controls opening): if [ -f "outputs/decision_dashboard_${TICKER}.html" ]; then open "outputs/decision_dashboard_${TICKER}.html" || true; fi
 if [ -f "outputs/news_clickpack_${TICKER}.html" ]; then open "outputs/news_clickpack_${TICKER}.html" || true; fi
 if [ -f "outputs/claim_evidence_${TICKER}.html" ]; then open "outputs/claim_evidence_${TICKER}.html" || true; fi
 
@@ -130,7 +130,7 @@ if [ -f "outputs/claim_evidence_${TICKER}.html" ]; then open "outputs/claim_evid
 echo ""
 echo "🚀 OPENING RESULTS (dopamine order)"
 echo "1) Dashboard"
-if [ -f "outputs/decision_dashboard_${TICKER}.html" ]; then open "outputs/decision_dashboard_${TICKER}.html" || true; fi
+# DISABLED (JARVIS controls opening): if [ -f "outputs/decision_dashboard_${TICKER}.html" ]; then open "outputs/decision_dashboard_${TICKER}.html" || true; fi
 
 echo "2) SUPER memo"
 if [ -f "outputs/${TICKER}_SUPER_Memo.md" ]; then open "outputs/${TICKER}_SUPER_Memo.md" || true; fi
@@ -161,7 +161,7 @@ echo "🚀 OPENING RESULTS (clean dopamine mode)"
 
 # OPEN IN ORDER: 1) dashboard 2) SUPER pdf
 if [ -f "outputs/decision_dashboard_${TICKER_UPPER}.html" ]; then
-#   open "outputs/decision_dashboard_${TICKER_UPPER}.html" || true  # disabled: no tab spam
+# DISABLED (JARVIS controls opening): #   open "outputs/decision_dashboard_${TICKER_UPPER}.html" || true  # disabled: no tab spam
 fi
 if [ -f "export/${TICKER_UPPER}_SUPER_Memo.pdf" ]; then
 #   open "export/${TICKER_UPPER}_SUPER_Memo.pdf" || true  # disabled: no tab spam
@@ -170,7 +170,7 @@ fi
 echo ""
 echo "🚀 OPENING RESULTS (ordered, no spam)"
 if [ -f "outputs/decision_dashboard_${TICKER}.html" ]; then
-  open "outputs/decision_dashboard_${TICKER}.html" || true
+# DISABLED (JARVIS controls opening):   open "outputs/decision_dashboard_${TICKER}.html" || true
 fi
 if [ -f "export/${TICKER}_SUPER_Memo.pdf" ]; then
   open "export/${TICKER}_SUPER_Memo.pdf" || true

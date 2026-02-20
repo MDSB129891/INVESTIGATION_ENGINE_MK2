@@ -23,7 +23,7 @@ ls -lh "outputs/${T}_SUPER_Memo.md" "export/${T}_SUPER_Memo.docx" "export/${T}_S
 echo ""
 echo "OPEN (only 2 things, in order):"
 if [ -f "outputs/decision_dashboard_${T}.html" ]; then
-  open "outputs/decision_dashboard_${T}.html" || true
+# DISABLED (JARVIS controls opening):   open "outputs/decision_dashboard_${T}.html" || true
 fi
 if [ -f "export/${T}_SUPER_Memo.pdf" ]; then
   open "export/${T}_SUPER_Memo.pdf" || true

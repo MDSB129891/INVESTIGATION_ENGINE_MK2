@@ -40,7 +40,7 @@ echo ""
 echo "🚀 OPENING RESULTS (dopamine mode)"
 
 # 3) Open the goodies (best effort)
-[ -f "outputs/decision_dashboard_${TICKER}.html" ] && open "outputs/decision_dashboard_${TICKER}.html" || true
+# DISABLED (JARVIS controls opening): [ -f "outputs/decision_dashboard_${TICKER}.html" ] && open "outputs/decision_dashboard_${TICKER}.html" || true
 [ -f "outputs/news_clickpack_${TICKER}.html" ] && open "outputs/news_clickpack_${TICKER}.html" || true
 [ -f "outputs/claim_evidence_${TICKER}.html" ] && open "outputs/claim_evidence_${TICKER}.html" || true
 

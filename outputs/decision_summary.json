@@ -39,15 +39,15 @@
   },
   "news_sentiment_proxy": {
     "ticker": "UBER",
-    "articles_7d": 73,
-    "articles_30d": 209,
+    "articles_7d": 72,
+    "articles_30d": 208,
     "neg_7d": 1,
     "neg_30d": 5,
     "shock_7d": -3,
     "shock_30d": -12,
-    "pos_hits_7d": 8,
+    "pos_hits_7d": 7,
     "neg_hits_7d": 4,
-    "proxy_score_7d": 56,
+    "proxy_score_7d": 54,
     "proxy_score_30d": 57
   },
   "universe": [

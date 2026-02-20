@@ -1,6 +1,6 @@
 ticker,risk_tag,neg_count_30d,shock_30d,neg_count_7d,shock_7d,worst_7d_title,worst_7d_source,worst_7d_url,worst_7d_impact
-DASH,TOTAL,5,-13.0,0,0.0,None,None,None,0.0
-DASH,REGULATORY,4,-10.0,0,0.0,None,None,None,0.0
+DASH,TOTAL,4,-11.0,0,0.0,None,None,None,0.0
+DASH,REGULATORY,3,-8.0,0,0.0,None,None,None,0.0
 DASH,INSURANCE,1,-3.0,0,0.0,None,None,None,0.0
 LYFT,TOTAL,2,-6.0,0,0.0,None,None,None,0.0
 LYFT,REGULATORY,2,-6.0,0,0.0,None,None,None,0.0

@@ -36,7 +36,7 @@ fi
 echo ""
 echo "OPENING (only 2 things, in order):"
 if [ -f "outputs/decision_dashboard_${T_UP}.html" ]; then
-  open "outputs/decision_dashboard_${T_UP}.html" || true
+# DISABLED (JARVIS controls opening):   open "outputs/decision_dashboard_${T_UP}.html" || true
 else
   echo "⚠️ Missing: outputs/decision_dashboard_${T_UP}.html"
 fi

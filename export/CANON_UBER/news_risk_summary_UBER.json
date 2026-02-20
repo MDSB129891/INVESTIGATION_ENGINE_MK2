@@ -1,12 +1,11 @@
 {
   "ticker": "UBER",
-  "news_shock_30d": -12,
-  "news_shock_7d": -3,
-  "risk_labor_neg_30d": 0,
-  "risk_regulatory_neg_30d": 1,
-  "risk_insurance_neg_30d": 2,
-  "source": {
-    "sentiment_proxy": "data/processed/news_sentiment_proxy.csv",
-    "risk_dashboard": "data/processed/news_risk_dashboard.csv"
-  }
+  "generated_at": "2026-02-20T02:42:17.253386Z",
+  "news_shock": 32.0,
+  "risk_labor_neg_30d": 1,
+  "risk_regulatory_neg_30d": 2,
+  "risk_insurance_neg_30d": 0,
+  "risk_safety_neg_30d": 0,
+  "risk_competition_neg_30d": 1,
+  "risk_total_30d": 4
 }

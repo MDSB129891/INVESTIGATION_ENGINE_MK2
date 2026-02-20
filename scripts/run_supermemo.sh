@@ -27,7 +27,7 @@ python3 scripts/build_big_memo.py --ticker "$TICKER" --thesis "$THESIS_FILE"
 
 # 3) Open the dopamine pack
 open "export/${TICKER}_BIG_Memo.docx" || true
-open "outputs/decision_dashboard_${TICKER}.html" || true
+# DISABLED (JARVIS controls opening): open "outputs/decision_dashboard_${TICKER}.html" || true
 open "outputs/news_clickpack_${TICKER}.html" || true
 open "outputs/claim_evidence_${TICKER}.html" || true
 

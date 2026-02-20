@@ -15,7 +15,7 @@ python3 scripts/build_super_storytime_memo.py --ticker "$T" ${THESIS:+--thesis "
 
 # OPEN IN ORDER (dopamine, but clean)
 if [ -f "outputs/decision_dashboard_${T}.html" ]; then
-  open "outputs/decision_dashboard_${T}.html" || true
+# DISABLED (JARVIS controls opening):   open "outputs/decision_dashboard_${T}.html" || true
 fi
 
 if [ -f "export/${T}_SUPER_Storytime_Memo.pdf" ]; then

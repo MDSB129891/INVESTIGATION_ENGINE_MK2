@@ -494,6 +494,19 @@ def main():
     write_csv(ttm_all, DATA_PROCESSED / "fundamentals_ttm_universe.csv")
 
     comps = build_comps_snapshot(ttm_latest, quotes)
+    
+    # --- SERUM A: compute EV + EV/Sales (multiples) from existing cols ---
+    import numpy as _np
+    if "enterprise_value" not in comps.columns:
+        if "market_cap" in comps.columns and "net_debt" in comps.columns:
+            comps["enterprise_value"] = comps["market_cap"].astype(float) + comps["net_debt"].astype(float)
+
+    if "ev_sales" not in comps.columns:
+        if "enterprise_value" in comps.columns and "revenue_ttm" in comps.columns:
+            r = comps["revenue_ttm"].astype(float).replace(0.0, _np.nan)
+            comps["ev_sales"] = comps["enterprise_value"].astype(float) / r
+    # --- END SERUM A ---
+
     write_csv(comps, DATA_PROCESSED / "comps_snapshot.csv")
 
     # NEWS (stable): SEC + Finnhub company news

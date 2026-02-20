@@ -1,0 +1,118 @@
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>IRONMAN HUD — UBER</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Arial; background:#0b0f14; color:#d7e3f4; margin:0; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 24px; }
+  .hdr { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; }
+  h1 { margin:0; font-size: 28px; letter-spacing:0.5px; }
+  .sub { opacity:0.75; }
+  .grid { display:grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 18px; }
+  .card { background:#121a24; border:1px solid #1f2a3a; border-radius:14px; padding:14px; }
+  .k { opacity:0.7; font-size:12px; text-transform:uppercase; letter-spacing:0.08em; }
+  .v { font-size:22px; margin-top:6px; }
+  .small { font-size:14px; opacity:0.85; margin-top:8px; line-height:1.35; }
+  .wide { grid-column: 1 / -1; }
+  .row { display:flex; justify-content:space-between; gap:10px; margin-top:8px; }
+  .pill { padding:2px 8px; border-radius:999px; background:#0e2236; border:1px solid #1a3a5a; }
+  a { color:#7cc4ff; text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <div>
+      <h1>IRONMAN HUD — UBER</h1>
+      <div class="sub">Numbers-first cockpit view (snapshot + DCF + news risk)</div>
+    </div>
+    <div class="sub">File: UBER_IRONMAN_HUD.html</div>
+  </div>
+
+  <div class="grid">
+      <div class="card wide">
+        <div class="k">WHAT YOU’RE LOOKING AT (plain English)</div>
+        <div class="small" style="line-height:1.45;margin-top:6px;">
+          <b>Goal:</b> Decide if this stock looks <i>financially strong</i> and if <i>headline risk</i> is spiking.<br/>
+          <b>How to read it:</b> higher cash returns and calm news are generally better.
+        </div>
+
+        <div class="row" style="margin-top:10px;"><div><b>Free cash flow (TTM)</b></div><div>$9.76B<span class="pill" style="margin-left:8px;opacity:.85;">$</span></div></div>
+        <div class="small">Cash the business produces after paying its bills. More = more flexibility.</div>
+
+        <div class="row" style="margin-top:10px;"><div><b>FCF margin</b></div><div>18.77%<span class="pill" style="margin-left:8px;opacity:.85;">%</span></div></div>
+        <div class="small">Of each $1 of sales, how much becomes real cash. Higher = more efficient.</div>
+
+        <div class="row" style="margin-top:10px;"><div><b>FCF yield</b></div><div>6.44%<span class="pill" style="margin-left:8px;opacity:.85;">%</span></div></div>
+        <div class="small">Cash return vs what you pay for the whole company. Decent cash return (okay).</div>
+
+        <div class="row" style="margin-top:10px;"><div><b>News shock (30d)</b></div><div>32<span class="pill" style="margin-left:8px;opacity:.85;">score</span></div></div>
+        <div class="small">Mostly stable (some noise). Lower/more negative = worse headlines.</div>
+
+        <div class="row" style="margin-top:10px;"><div><b>Risk total (30d)</b></div><div>4<span class="pill" style="margin-left:8px;opacity:.85;">#</span></div></div>
+        <div class="small">Count of negative risk-tagged news (labor/regulatory/insurance/safety/competition).</div>
+      </div>
+    <div class="card">
+      <div class="k">Price</div>
+      <div class="v">72.94</div>
+      <div class="small">Market cap: $151.56B</div>
+    </div>
+
+    <div class="card">
+      <div class="k">Sales growth (YoY)</div>
+      <div class="v">18.28%</div>
+      <div class="small">"Compared to last year"</div>
+    </div>
+
+    <div class="card">
+      <div class="k">Free cash flow (TTM)</div>
+      <div class="v">$9.76B</div>
+      <div class="small">Cash left after bills & investment</div>
+    </div>
+
+    <div class="card">
+      <div class="k">FCF margin</div>
+      <div class="v">18.77%</div>
+      <div class="small">Cash efficiency of sales</div>
+    </div>
+
+    <div class="card">
+      <div class="k">FCF yield</div>
+      <div class="v">6.44%</div>
+      <div class="small">Cash return vs what you pay</div>
+    </div>
+
+    <div class="card">
+      <div class="k">News shock (30d)</div>
+      <div class="v">32<span class="pill" style="margin-left:8px;opacity:.85;">score</span></div>
+      <div class="small">Lower (more negative) = worse headlines</div>
+    </div>
+
+    <div class="card wide">
+      <div class="k">DCF cone (per share)</div>
+      <div class="row"><div>Bear</div><div><span class="pill">59.73</span> <span class="sub">(-18.1%)</span></div></div>
+      <div class="row"><div>Base</div><div><span class="pill">74.14</span> <span class="sub">(1.6%)</span></div></div>
+      <div class="row"><div>Bull</div><div><span class="pill">87.6</span> <span class="sub">(20.1%)</span></div></div>
+      <div class="small">Assumptions: discount 0.1, terminal growth 0.02</div>
+    </div>
+
+    <div class="card wide">
+        <div class="k">Risk counts (30d)</div>
+        <div class="row"><div>Labor</div><div>1</div></div>
+        <div class="row"><div>Regulatory</div><div>2</div></div>
+        <div class="row"><div>Insurance</div><div>0</div></div>
+        <div class="row"><div>Safety</div><div>0</div></div>
+        <div class="row"><div>Competition</div><div>1</div></div>
+        <div class="row"><div><b>Total</b></div><div><b>4</b><span class="pill" style="margin-left:8px;opacity:.85;">#</span></div></div>
+        <div class="small">Source: news_risk_summary — 2026-02-20T02:42:17.253386Z</div>
+      </div>
+    </div>
+
+  <div class="small" style="margin-top:14px;">
+    Open next: <a href="decision_dashboard_UBER.html">Dashboard</a> · <a href="news_clickpack_UBER.html">News clickpack</a> · <a href="claim_evidence_UBER.html">Claim evidence</a>
+  </div>
+</div>
+</body>
+</html>

@@ -39,7 +39,7 @@ fi
 echo ""
 echo "🚀 OPENING (ordered dopamine)"
 echo "1) Dashboard"
-[ -f "outputs/decision_dashboard_${TICKER}.html" ] && open "outputs/decision_dashboard_${TICKER}.html" || true
+# DISABLED (JARVIS controls opening): [ -f "outputs/decision_dashboard_${TICKER}.html" ] && open "outputs/decision_dashboard_${TICKER}.html" || true
 sleep 0.8
 
 echo "2) SUPER Memo (Word)"

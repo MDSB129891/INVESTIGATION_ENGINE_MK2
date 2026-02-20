@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -e
+
+TICKER="$1"
+THESIS="$2"
+
+if [ -z "$TICKER" ] || [ -z "$THESIS" ]; then
+  echo ""
+  echo "Usage:"
+  echo '  JARVIS TICKER "your thesis here"'
+  echo ""
+  exit 1
+fi
+
+echo ""
+echo "🧠 JARVIS ONLINE"
+echo "Ticker: $TICKER"
+echo "Thesis: $THESIS"
+echo ""
+
+mkdir -p theses
+
+cat << EOF > theses/${TICKER}_jarvis.json
+{
+  "ticker": "$TICKER",
+  "name": "Jarvis thesis",
+  "description": "$THESIS",
+  "claims": []
+}
+EOF
+
+# Full engine
+./scripts/run_thanos.sh "$TICKER"
+
+# Build SUPERPLUS CLEAN memo
+python3 scripts/build_superplus_clean.py \
+  --ticker "$TICKER" \
+  --thesis theses/${TICKER}_jarvis.json
+
+# Canon folder
+CANON="export/CANON_${TICKER}"
+mkdir -p "$CANON"
+
+mv export/${TICKER}_SUPERPLUS_CLEAN_Memo.pdf "$CANON/" || true
+mv outputs/decision_dashboard_${TICKER}.html "$CANON/" || true
+mv outputs/news_clickpack_${TICKER}.html "$CANON/" || true
+mv outputs/claim_evidence_${TICKER}.html "$CANON/" || true
+mv outputs/alerts_${TICKER}.json "$CANON/" || true
+mv outputs/veracity_${TICKER}.json "$CANON/" || true
+mv outputs/news_risk_summary_${TICKER}.json "$CANON/" || true
+
+echo ""
+echo "🚀 JARVIS COMPLETE"
+echo ""
+
+open "$CANON/decision_dashboard_${TICKER}.html" || true
+open "$CANON/${TICKER}_SUPERPLUS_CLEAN_Memo.pdf" || true

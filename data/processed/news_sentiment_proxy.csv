@@ -1,4 +1,4 @@
 ticker,articles_7d,articles_30d,neg_7d,neg_30d,shock_7d,shock_30d,pos_hits_7d,neg_hits_7d,proxy_score_7d,proxy_score_30d
-DASH,128,210,0,5,0,-13,22,19,75,57
-LYFT,6,66,0,2,0,-6,0,1,49,42
-UBER,73,209,1,5,-3,-12,8,4,56,57
+DASH,142,208,0,4,0,-11,23,22,74,61
+LYFT,7,67,0,2,0,-6,0,1,49,42
+UBER,72,208,1,5,-3,-12,7,4,54,57

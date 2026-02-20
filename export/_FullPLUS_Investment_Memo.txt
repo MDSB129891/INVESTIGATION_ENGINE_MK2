@@ -1,0 +1,21 @@
+# Full+ Investment Memo — 
+*Generated: 2026-02-19 23:54 UTC*
+
+## Quick summary
+- Model rating: **N/A** (N/A/100)
+- Evidence confidence: **N/A** (higher = more trustworthy coverage)
+
+## News & risk quick check (last 30 days)
+- Headline negativity score (30d): **N/A**
+- Headline negativity score (7d): **N/A**
+- Labor risk headlines (30d): **N/A**
+- Regulatory risk headlines (30d): **N/A**
+- Insurance risk headlines (30d): **N/A**
+
+## Full explanation (kid-friendly, linked to THIS company)
+⚠️ Missing SUPERPLUS_CLEAN memo. Generate it first, then rerun this script.
+
+## What to open
+- Dashboard: `/Users/melsanchez/Documents/GitHub/investment_decision_engine/outputs/decision_dashboard_.html`
+- News clickpack: `/Users/melsanchez/Documents/GitHub/investment_decision_engine/outputs/news_clickpack_.html`
+- Claim evidence: `/Users/melsanchez/Documents/GitHub/investment_decision_engine/outputs/claim_evidence_.html`

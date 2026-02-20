@@ -64,6 +64,6 @@ fi
 echo ""
 echo "🚀 OPENING (order): Dashboard -> SUPER PDF"
 if [ -f "outputs/decision_dashboard_${TICKER_UPPER}.html" ]; then
-  open "outputs/decision_dashboard_${TICKER_UPPER}.html" || true
+# DISABLED (JARVIS controls opening):   open "outputs/decision_dashboard_${TICKER_UPPER}.html" || true
 fi
 open "$PDF" || true

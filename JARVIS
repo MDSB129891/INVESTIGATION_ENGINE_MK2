@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
-TICKER="$1"
-THESIS="$2"
+TICKER="${1:-}"
+THESIS="${2:-}"
 
-if [ -z "$TICKER" ] || [ -z "$THESIS" ]; then
+if [[ -z "${TICKER}" || -z "${THESIS}" ]]; then
   echo ""
   echo "Usage:"
   echo '  JARVIS TICKER "your thesis here"'
@@ -12,46 +12,86 @@ if [ -z "$TICKER" ] || [ -z "$THESIS" ]; then
   exit 1
 fi
 
+TICKER_UPPER="$(echo "$TICKER" | tr '[:lower:]' '[:upper:]')"
+
 echo ""
 echo "🧠 JARVIS ONLINE"
-echo "Ticker: $TICKER"
-echo "Thesis: $THESIS"
+echo "Ticker: ${TICKER_UPPER}"
+echo "Thesis: ${THESIS}"
 echo ""
 
 mkdir -p theses
 
-cat << EOF > theses/${TICKER}_jarvis.json
+# Write jarvis thesis JSON
+cat > "theses/${TICKER_UPPER}_jarvis.json" <<EOF
 {
-  "ticker": "$TICKER",
+  "ticker": "${TICKER_UPPER}",
   "name": "Jarvis thesis",
-  "description": "$THESIS",
+  "description": "${THESIS}",
   "claims": []
 }
 EOF
 
-# Full engine
-./scripts/run_thanos.sh "$TICKER"
+echo "✅ JARVIS thesis file: theses/${TICKER_UPPER}_jarvis.json"
+echo ""
 
-# Build SUPERPLUS CLEAN memo
+# Run THANOS with thesis path (single source of truth)
+./scripts/run_thanos.sh "${TICKER_UPPER}" "theses/${TICKER_UPPER}_jarvis.json"
+
+# Build SUPERPLUS CLEAN memo using the same thesis
 python3 scripts/build_superplus_clean.py \
-  --ticker "$TICKER" \
-  --thesis theses/${TICKER}_jarvis.json
+  --ticker "${TICKER_UPPER}" \
+  --thesis "theses/${TICKER_UPPER}_jarvis.json"
 
 # Canon folder
-CANON="export/CANON_${TICKER}"
+CANON="export/CANON_${TICKER_UPPER}"
 mkdir -p "$CANON"
 
-mv export/${TICKER}_SUPERPLUS_CLEAN_Memo.pdf "$CANON/" || true
-mv outputs/decision_dashboard_${TICKER}.html "$CANON/" || true
-mv outputs/news_clickpack_${TICKER}.html "$CANON/" || true
-mv outputs/claim_evidence_${TICKER}.html "$CANON/" || true
-mv outputs/alerts_${TICKER}.json "$CANON/" || true
-mv outputs/veracity_${TICKER}.json "$CANON/" || true
-mv outputs/news_risk_summary_${TICKER}.json "$CANON/" || true
+# Move core artifacts into CANON (do not fail if missing)
+mv -f "export/${TICKER_UPPER}_SUPERPLUS_CLEAN_Memo.pdf" "$CANON/" 2>/dev/null || true
+mv -f "outputs/decision_dashboard_${TICKER_UPPER}.html" "$CANON/" 2>/dev/null || true
+mv -f "outputs/news_clickpack_${TICKER_UPPER}.html" "$CANON/" 2>/dev/null || true
+mv -f "outputs/claim_evidence_${TICKER_UPPER}.html" "$CANON/" 2>/dev/null || true
+mv -f "outputs/alerts_${TICKER_UPPER}.json" "$CANON/" 2>/dev/null || true
+mv -f "outputs/veracity_${TICKER_UPPER}.json" "$CANON/" 2>/dev/null || true
+mv -f "outputs/news_risk_summary_${TICKER_UPPER}.json" "$CANON/" 2>/dev/null || true
+
+# FRIDAY modules (safe)
+python3 scripts/friday/build_core_metrics.py --ticker "${TICKER_UPPER}" || true
+python3 scripts/friday/build_free_news.py --ticker "${TICKER_UPPER}" || true
+python3 scripts/friday/build_decision_core.py --ticker "${TICKER_UPPER}" || true
+
+# These should already write into CANON, but move if they produced in outputs/
+mv -f "export/CANON_${TICKER_UPPER}/${TICKER_UPPER}_CORE_METRICS.html" "$CANON/" 2>/dev/null || true
+mv -f "export/CANON_${TICKER_UPPER}/${TICKER_UPPER}_FREE_NEWS.html" "$CANON/" 2>/dev/null || true
+mv -f "export/CANON_${TICKER_UPPER}/${TICKER_UPPER}_DECISION_CORE.html" "$CANON/" 2>/dev/null || true
 
 echo ""
-echo "🚀 JARVIS COMPLETE"
+echo "🚀 JARVIS COMPLETE — CANON:"
+ls -lh "$CANON" | sed -n '1,120p'
 echo ""
 
-open "$CANON/decision_dashboard_${TICKER}.html" || true
-open "$CANON/${TICKER}_SUPERPLUS_CLEAN_Memo.pdf" || true
+echo "OPENING (WAKANDA CORE):"
+set +e
+
+open_one() {
+  local f="$1"
+  if [[ -f "$f" ]]; then
+    echo "→ opening $f"
+    /usr/bin/open "$f" 2>/dev/null || true
+  else
+    echo "⚠️ missing $f"
+  fi
+}
+
+open_one "$CANON/decision_dashboard_${TICKER_UPPER}.html"
+open_one "$CANON/${TICKER_UPPER}_DECISION_CORE.html"
+open_one "$CANON/${TICKER_UPPER}_SUPERPLUS_CLEAN_Memo.pdf"
+open_one "$CANON/${TICKER_UPPER}_IRONMAN_HUD.html"
+open_one "$CANON/${TICKER_UPPER}_TIME_MACHINE.html"
+open_one "$CANON/${TICKER_UPPER}_FREE_NEWS.html"
+open_one "$CANON/${TICKER_UPPER}_CORE_METRICS.html"
+open_one "$CANON/${TICKER_UPPER}_Full_Investment_Memo.pdf"
+
+echo ""
+echo "✅ DONE"

@@ -45,7 +45,7 @@ fi
 
 echo ""
 echo "🚀 Opening canon outputs (in order)..."
-[ -f "outputs/decision_dashboard_${T}.html" ] && open "outputs/decision_dashboard_${T}.html" || true
+# DISABLED (JARVIS controls opening): [ -f "outputs/decision_dashboard_${T}.html" ] && open "outputs/decision_dashboard_${T}.html" || true
 [ -f "export/${T}_SUPER_Memo.pdf" ] && open "export/${T}_SUPER_Memo.pdf" || true
 [ -f "outputs/news_clickpack_${T}.html" ] && open "outputs/news_clickpack_${T}.html" || true
 [ -f "outputs/claim_evidence_${T}.html" ] && open "outputs/claim_evidence_${T}.html" || true

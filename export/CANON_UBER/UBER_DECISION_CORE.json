@@ -1,0 +1,25 @@
+{
+  "ticker": "UBER",
+  "generated_at": "2026-02-20T05:12:33.588511Z",
+  "metrics": {
+    "fcf_ttm": 9763000000.0,
+    "net_debt": 5734000000.0,
+    "price_used": 72.94,
+    "market_cap_used": 151556946240.0,
+    "bear_price": 59.73,
+    "base_price": 74.14,
+    "bull_price": 87.6,
+    "fcf_yield": 6.441803059649718,
+    "enterprise_value": 157290946240.0,
+    "ev_sales": 3.0238373270277026,
+    "news_shock": 32.0,
+    "risk_labor_neg_30d": 1,
+    "risk_regulatory_neg_30d": 2,
+    "risk_insurance_neg_30d": 0,
+    "risk_safety_neg_30d": 0,
+    "risk_competition_neg_30d": 1,
+    "risk_total_30d": 4
+  },
+  "enterprise_value": 157290946240.0,
+  "ev_sales": 3.0238373270277026
+}

@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+TICKER="${1:-UBER}"
+THESIS_PATH="${2:-}"
+THESIS_PATH="${THESIS_OVERRIDE:-$THESIS_PATH}"
+THESIS_PATH="${THESIS_PATH:-theses/${TICKER}_thesis_base.json}"
+
+echo "🟣 THANOS RUN: ${TICKER}"
+echo "Thesis override: ${THESIS_PATH:-<none>}"
+
+# Universe: you can change peers here if you want (or pass UNIVERSE env)
+export UNIVERSE="${UNIVERSE:-${TICKER},LYFT,DASH}"
+
+echo "=== 1) Engine update (financials + news) ==="
+python3 scripts/run_uber_update.py
+
+# --- GALACTUS: force shared summary to match this ticker (prevents ticker mismatch) ---
+if [ -f "outputs/decision_summary_${TICKER}.json" ]; then
+  cp "outputs/decision_summary_${TICKER}.json" "outputs/decision_summary.json"
+fi
+if [ -f "outputs/decision_explanation_${TICKER}.json" ]; then
+  cp "outputs/decision_explanation_${TICKER}.json" "outputs/decision_explanation.json"
+fi
+
+
+echo "=== 2) Thesis suite (bear/base/bull) ==="
+python3 scripts/generate_thesis_suite.py --ticker "${TICKER}"
+
+echo "=== 3) Veracity pack (confidence + clickpack) ==="
+python3 scripts/build_veracity_pack.py --ticker "${TICKER}"
+
+echo "=== 4) Alerts (thesis breakers + red lines) ==="
+python3 scripts/build_alerts.py --ticker "${TICKER}"
+
+echo "=== 4.5) Claim evidence (Stormbreaker) ==="
+python3 scripts/build_claim_evidence.py --ticker "$TICKER" --thesis "theses/${TICKER}_thesis_base.json"
+
+echo "=== 5) Full memo (novice friendly + verdict + scenarios) ==="
+if [[ -n "${THESIS_PATH}" ]]; then
+  python3 scripts/build_investment_memo.py --ticker "${TICKER}" --thesis "${THESIS_PATH}"
+else
+  python3 scripts/build_investment_memo.py --ticker "${TICKER}"
+fi
+
+echo "=== 5a) Calculation methodology (formulas + worked example) ==="
+python3 scripts/build_calculation_methodology.py --ticker "${TICKER}"
+
+
+echo "=== 5b) Export PDF ==="
+python3 scripts/export_pdf.py --ticker "${TICKER}"
+
+echo "=== 6) One-page dashboard (links everything) ==="
+python3 scripts/generate_dashboard.py --ticker "${TICKER}"
+
+echo ""
+echo "DONE ✅ THANOS PACK:"
+echo "- outputs/news_clickpack_${TICKER}.html"
+echo "- outputs/veracity_${TICKER}.json"
+echo "- outputs/alerts_${TICKER}.json"
+echo "- outputs/decision_dashboard_${TICKER}.html"
+echo "- export/${TICKER}_Full_Investment_Memo.docx"
+echo "- outputs/${TICKER}_Calculation_Methodology.md"
+echo "- export/${TICKER}_Calculation_Methodology.docx"
+echo ""
+
+open "outputs/decision_dashboard_${TICKER}.html" || true
+open "export/${TICKER}_Full_Investment_Memo.docx" || true
+
+
+echo "=== X) ULTRA memo (novice / explain-everything) ==="
+# If thesis override exists, pass it through; otherwise ULTRA still works.
+if [ -n "${THESIS_OVERRIDE:-}" ] && [ -f "${THESIS_OVERRIDE}" ]; then
+  python3 scripts/build_ultra_memo.py --ticker "$TICKER" --thesis "${THESIS_OVERRIDE}" || true
+else
+  python3 scripts/build_ultra_memo.py --ticker "$TICKER" || true
+fi
+
+echo ""
+echo "🚀 OPENING ULTRA RESULTS"
+if [ -f "export/${TICKER}_ULTRA_Memo.docx" ]; then open "export/${TICKER}_ULTRA_Memo.docx" || true; fi
+if [ -f "outputs/decision_dashboard_${TICKER}.html" ]; then open "outputs/decision_dashboard_${TICKER}.html" || true; fi
+if [ -f "outputs/news_clickpack_${TICKER}.html" ]; then open "outputs/news_clickpack_${TICKER}.html" || true; fi
+if [ -f "outputs/claim_evidence_${TICKER}.html" ]; then open "outputs/claim_evidence_${TICKER}.html" || true; fi
+

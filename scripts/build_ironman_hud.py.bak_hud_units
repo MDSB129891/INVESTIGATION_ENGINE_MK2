@@ -6,12 +6,10 @@ import pandas as pd
 # _HUD_HELPERS_BEGIN
 def _pill(unit: str) -> str:
     u = (unit or "").lower().strip()
-    m = {"usd":"USD", "pct":"pct", "x":"x", "count":"#", "score":"score"}
+    m = {"usd":"$", "pct":"%", "x":"x", "count":"#", "score":"score"}
     return f'<span class="pill" style="margin-left:8px;opacity:.85;">{m.get(u,u)}</span>'
 
 def _fmt_usd(v):
-    if v is None:
-        return 'N/A'
     try:
         v = float(v)
     except Exception:
@@ -211,13 +209,6 @@ def main(ticker: str):
         except Exception:
             pass
 
-    # --- DCF cone aliases (needed for HUD formatting) ---
-    _cone = (dcf or {}).get("valuation_per_share", {}) if isinstance(dcf, dict) else {}
-    bear_price = _cone.get("bear_price", None)
-    base_price = _cone.get("base_price", None)
-    bull_price = _cone.get("bull_price", None)
-
-
 
 
     html = f"""
@@ -278,31 +269,31 @@ def main(ticker: str):
       </div>
     <div class="card">
       <div class="k">Price</div>
-      <div class="v">{_fmt_usd(price)}{_pill("usd")}</div>
-      <div class="small">Market cap: {_fmt_usd(mcap)}</div>
+      <div class="v">{price if price is not None else "N/A"}</div>
+      <div class="small">Market cap: {fmt_money(mcap)}</div>
     </div>
 
     <div class="card">
       <div class="k">Sales growth (YoY)</div>
-      <div class="v">{fmt_pct(rev_yoy)}{_pill("pct")}</div>
+      <div class="v">{fmt_pct(rev_yoy)}</div>
       <div class="small">"Compared to last year"</div>
     </div>
 
     <div class="card">
       <div class="k">Free cash flow (TTM)</div>
-      <div class="v">{_fmt_usd(fcf_ttm_display)}{_pill("usd")}</div>
+      <div class="v">{fmt_money(fcf)}</div>
       <div class="small">Cash left after bills & investment</div>
     </div>
 
     <div class="card">
       <div class="k">FCF margin</div>
-      <div class="v">{fmt_pct(fcf_m)}{_pill("pct")}</div>
+      <div class="v">{fmt_pct(fcf_m)}</div>
       <div class="small">Cash efficiency of sales</div>
     </div>
 
     <div class="card">
       <div class="k">FCF yield</div>
-      <div class="v">{fmt_pct(fcf_y_display)}{_pill("pct")}</div>
+      <div class="v">{fmt_pct(fcf_y_display)}</div>
       <div class="small">Cash return vs what you pay</div>
     </div>
 
@@ -314,9 +305,9 @@ def main(ticker: str):
 
     <div class="card wide">
       <div class="k">DCF cone (per share)</div>
-      <div class="row"><div>Bear</div><div><span class="pill">{_fmt_usd(bear_price)}</span> <span class="sub">({ups.get("bear","N/A")}%)</span></div></div>
-      <div class="row"><div>Base</div><div><span class="pill">{_fmt_usd(base_price)}</span> <span class="sub">({ups.get("base","N/A")}%)</span></div></div>
-      <div class="row"><div>Bull</div><div><span class="pill">{_fmt_usd(bull_price)}</span> <span class="sub">({ups.get("bull","N/A")}%)</span></div></div>
+      <div class="row"><div>Bear</div><div><span class="pill">{vps.get("bear_price","N/A")}</span> <span class="sub">({ups.get("bear","N/A")}%)</span></div></div>
+      <div class="row"><div>Base</div><div><span class="pill">{vps.get("base_price","N/A")}</span> <span class="sub">({ups.get("base","N/A")}%)</span></div></div>
+      <div class="row"><div>Bull</div><div><span class="pill">{vps.get("bull_price","N/A")}</span> <span class="sub">({ups.get("bull","N/A")}%)</span></div></div>
       <div class="small">Assumptions: discount {dcf.get("assumptions",{}).get("discount_rate","N/A")}, terminal growth {dcf.get("assumptions",{}).get("terminal_growth","N/A")}</div>
     </div>
 

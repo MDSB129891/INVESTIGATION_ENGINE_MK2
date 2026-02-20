@@ -1,0 +1,152 @@
+{
+  "as_of": "2026-02-20T16:27:37+00:00",
+  "ticker": "UBER",
+  "thesis": "UBER: Thesis",
+  "thesis_file": "./theses/UBER_thesis_custom.json",
+  "results": [
+    {
+      "claim": {
+        "id": "c1",
+        "statement": "Revenue is still growing at a healthy pace",
+        "metric": "latest_revenue_yoy_pct",
+        "operator": ">=",
+        "threshold": 10.0,
+        "weight": 2
+      },
+      "status": "PASS",
+      "actual": 18.27959434262585,
+      "meaning": "How fast sales are growing compared to last year (higher usually = more demand).",
+      "good": "Often > 10% is considered strong growth (but depends on company maturity).",
+      "bad": "Negative means sales are shrinking.",
+      "tag": null,
+      "bull_evidence": [],
+      "bear_evidence": []
+    },
+    {
+      "claim": {
+        "id": "c2",
+        "statement": "Free cash flow is positive",
+        "metric": "latest_free_cash_flow",
+        "operator": ">",
+        "threshold": 0.0,
+        "weight": 3
+      },
+      "status": "PASS",
+      "actual": 9763000000.0,
+      "meaning": "Cash left over after paying business expenses and investments. This is the money a business can use to pay debt, buy back stock, or just survive.",
+      "good": "Positive and growing is generally good.",
+      "bad": "Negative means the company is burning cash.",
+      "tag": null,
+      "bull_evidence": [],
+      "bear_evidence": []
+    },
+    {
+      "claim": {
+        "id": "c3",
+        "statement": "Free cash flow margin is solid",
+        "metric": "latest_fcf_margin_pct",
+        "operator": ">=",
+        "threshold": 10.0,
+        "weight": 2
+      },
+      "status": "PASS",
+      "actual": 18.768864025222523,
+      "meaning": "How much cash profit the company keeps per $1 of revenue (FCF \u00f7 revenue).",
+      "good": "Higher is better; 10%+ is often strong for many businesses.",
+      "bad": "Near 0% or negative means weak cash conversion.",
+      "tag": null,
+      "bull_evidence": [],
+      "bear_evidence": []
+    },
+    {
+      "claim": {
+        "id": "c4",
+        "statement": "Valuation is not expensive versus cash (FCF yield is decent)",
+        "metric": "fcf_yield_pct",
+        "operator": ">=",
+        "threshold": 3.0,
+        "weight": 2
+      },
+      "status": "UNKNOWN",
+      "actual": null,
+      "meaning": "How much free cash flow you get for the price you pay (FCF \u00f7 market cap). Like an earnings yield but using real cash.",
+      "good": "Higher is better; 3\u20138% can be attractive, depending on growth/risk.",
+      "bad": "Very low can mean expensive valuation (or reinvestment phase).",
+      "tag": null,
+      "bull_evidence": [],
+      "bear_evidence": []
+    },
+    {
+      "claim": {
+        "id": "c5",
+        "statement": "Recent news shock is not severe (not a headline crisis)",
+        "metric": "news_shock_30d",
+        "operator": ">=",
+        "threshold": -15.0,
+        "weight": 1
+      },
+      "status": "PASS",
+      "actual": -12,
+      "meaning": "A proxy score for how 'negative' recent news has been over 30 days. More negative = more bad headlines.",
+      "good": "Closer to 0 is calmer. Mild negatives are normal.",
+      "bad": "Very negative suggests a real headline storm or escalating issues.",
+      "tag": null,
+      "bull_evidence": [],
+      "bear_evidence": []
+    },
+    {
+      "claim": {
+        "id": "c6",
+        "statement": "Insurance risk is not spiking recently",
+        "metric": "risk_insurance_neg_30d",
+        "operator": "<=",
+        "threshold": 3.0,
+        "weight": 1
+      },
+      "status": "PASS",
+      "actual": 2,
+      "meaning": "This is a numeric checkpoint used to test the thesis claim.",
+      "good": "Higher/lower being good depends on the claim\u2019s direction.",
+      "bad": "If it moves against the claim direction, the thesis weakens.",
+      "tag": "INSURANCE",
+      "bull_evidence": [],
+      "bear_evidence": []
+    },
+    {
+      "claim": {
+        "id": "c7",
+        "statement": "Regulatory risk is not spiking recently",
+        "metric": "risk_regulatory_neg_30d",
+        "operator": "<=",
+        "threshold": 3.0,
+        "weight": 1
+      },
+      "status": "PASS",
+      "actual": 1,
+      "meaning": "This is a numeric checkpoint used to test the thesis claim.",
+      "good": "Higher/lower being good depends on the claim\u2019s direction.",
+      "bad": "If it moves against the claim direction, the thesis weakens.",
+      "tag": "REGULATORY",
+      "bull_evidence": [],
+      "bear_evidence": []
+    },
+    {
+      "claim": {
+        "id": "c8",
+        "statement": "Labor risk is not spiking recently",
+        "metric": "risk_labor_neg_30d",
+        "operator": "<=",
+        "threshold": 3.0,
+        "weight": 1
+      },
+      "status": "UNKNOWN",
+      "actual": null,
+      "meaning": "This is a numeric checkpoint used to test the thesis claim.",
+      "good": "Higher/lower being good depends on the claim\u2019s direction.",
+      "bad": "If it moves against the claim direction, the thesis weakens.",
+      "tag": "LABOR",
+      "bull_evidence": [],
+      "bear_evidence": []
+    }
+  ]
+}

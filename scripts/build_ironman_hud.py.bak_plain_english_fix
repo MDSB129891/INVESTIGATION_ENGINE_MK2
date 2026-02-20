@@ -6,12 +6,10 @@ import pandas as pd
 # _HUD_HELPERS_BEGIN
 def _pill(unit: str) -> str:
     u = (unit or "").lower().strip()
-    m = {"usd":"USD", "pct":"pct", "x":"x", "count":"#", "score":"score"}
+    m = {"usd":"$", "pct":"%", "x":"x", "count":"#", "score":"score"}
     return f'<span class="pill" style="margin-left:8px;opacity:.85;">{m.get(u,u)}</span>'
 
 def _fmt_usd(v):
-    if v is None:
-        return 'N/A'
     try:
         v = float(v)
     except Exception:
@@ -70,7 +68,7 @@ def _interp_news_shock(score):
 def _fallback_fcf_yield_from_dcf(ticker: str):
     """
     Returns FCF yield as a float fraction (e.g., 0.064 for 6.4%), or None.
-    Looks at export/CANON_{T}/{T}_DCF.json with inputs.fcf and inputs.market_cap_used.
+    Looks at export/CANON_{T}/{T}_DCF.json with inputs.fcf_ttm and inputs.market_cap_used.
     """
     try:
         from pathlib import Path
@@ -80,7 +78,7 @@ def _fallback_fcf_yield_from_dcf(ticker: str):
         if not dcf_path.exists():
             return None
         d = json.loads(dcf_path.read_text(encoding="utf-8"))
-        fcf = float(d.get("inputs", {}).get("fcf") or 0.0)
+        fcf = float(d.get("inputs", {}).get("fcf_ttm") or 0.0)
         mc  = float(d.get("inputs", {}).get("market_cap_used") or 0.0)
         if fcf > 0 and mc > 0:
             return fcf / mc
@@ -161,7 +159,7 @@ def main(ticker: str):
 
     price = row.get("price", None)
     mcap  = row.get("market_cap", None)
-    fcf   = row.get("fcf", None)
+    fcf   = row.get("fcf_ttm", None)
     rev_yoy = row.get("revenue_ttm_yoy_pct", None)
     fcf_m = row.get("fcf_margin_ttm_pct", None)
     fcf_y = row.get("fcf_yield_pct", None)
@@ -173,52 +171,6 @@ def main(ticker: str):
 # DCF cone
     vps = dcf.get("valuation_per_share", {})
     ups = dcf.get("upside_downside_vs_price_pct", {})
-    # --- Display-ready FCF yield (use comps if present, else DCF fallback) ---
-    fcf_y_display = fcf_y
-    if fcf_y_display is None:
-        _v = _fallback_fcf_yield_from_dcf(ticker)
-        if _v is not None:
-            fcf_y_display = _v * 100.0
-    # --- Display-safe FCF + FCF yield (prefer comps, fallback to DCF inputs) ---
-    fcf_ttm_display = fcf
-    if fcf_ttm_display is None:
-        try:
-            _dcf = _read_json(canon / f"{T}_DCF.json") or _read_json(ROOT / "outputs" / f"{T}_DCF.json") or {}
-            fcf_ttm_display = (_dcf.get("inputs", {}) or {}).get("fcf_ttm")
-        except Exception:
-            pass
-
-    fcf_y_display = fcf_y
-    if fcf_y_display is None:
-        # 1) use DCF direct helper if available
-        try:
-            _v = _fallback_fcf_yield_from_dcf(ticker)
-            if _v is not None:
-                # helper returns fraction (0.064) OR pct (6.4) depending on earlier patches.
-                fcf_y_display = (_v * 100.0) if _v < 1 else _v
-        except Exception:
-            pass
-
-    # 2) final fallback: compute from DCF inputs if still missing
-    if fcf_y_display is None:
-        try:
-            _dcf = _read_json(canon / f"{T}_DCF.json") or _read_json(ROOT / "outputs" / f"{T}_DCF.json") or {}
-            _inp = _dcf.get("inputs", {}) or {}
-            _fcf = _inp.get("fcf_ttm")
-            _mcap = _inp.get("market_cap_used")
-            if _fcf and _mcap:
-                fcf_y_display = float(_fcf) / float(_mcap) * 100.0
-        except Exception:
-            pass
-
-    # --- DCF cone aliases (needed for HUD formatting) ---
-    _cone = (dcf or {}).get("valuation_per_share", {}) if isinstance(dcf, dict) else {}
-    bear_price = _cone.get("bear_price", None)
-    base_price = _cone.get("base_price", None)
-    bull_price = _cone.get("bull_price", None)
-
-
-
 
     html = f"""
 <!doctype html>
@@ -261,14 +213,14 @@ def main(ticker: str):
           <b>How to read it:</b> higher cash returns and calm news are generally better.
         </div>
 
-        <div class="row" style="margin-top:10px;"><div><b>Free cash flow (TTM)</b></div><div>{_fmt_usd(fcf_ttm_display)}{_pill("usd")}</div></div>
+        <div class="row" style="margin-top:10px;"><div><b>Free cash flow (TTM)</b></div><div>{_fmt_usd(fcf)}{_pill("usd")}</div></div>
         <div class="small">Cash the business produces after paying its bills. More = more flexibility.</div>
 
         <div class="row" style="margin-top:10px;"><div><b>FCF margin</b></div><div>{_fmt_pct(fcf_m)}{_pill("pct")}</div></div>
         <div class="small">Of each $1 of sales, how much becomes real cash. Higher = more efficient.</div>
 
-        <div class="row" style="margin-top:10px;"><div><b>FCF yield</b></div><div>{_fmt_pct(fcf_y_display)}{_pill("pct")}</div></div>
-        <div class="small">Cash return vs what you pay for the whole company. {_interp_fcf_yield(fcf_y_display)}.</div>
+        <div class="row" style="margin-top:10px;"><div><b>FCF yield</b></div><div>{_fmt_pct(fcf_y)}{_pill("pct")}</div></div>
+        <div class="small">Cash return vs what you pay for the whole company. {_interp_fcf_yield(fcf_y)}.</div>
 
         <div class="row" style="margin-top:10px;"><div><b>News shock (30d)</b></div><div>{_fmt_num(risk_shock)}{_pill("score")}</div></div>
         <div class="small">{_interp_news_shock(risk_shock)}. Lower/more negative = worse headlines.</div>
@@ -278,31 +230,31 @@ def main(ticker: str):
       </div>
     <div class="card">
       <div class="k">Price</div>
-      <div class="v">{_fmt_usd(price)}{_pill("usd")}</div>
-      <div class="small">Market cap: {_fmt_usd(mcap)}</div>
+      <div class="v">{price if price is not None else "N/A"}</div>
+      <div class="small">Market cap: {fmt_money(mcap)}</div>
     </div>
 
     <div class="card">
       <div class="k">Sales growth (YoY)</div>
-      <div class="v">{fmt_pct(rev_yoy)}{_pill("pct")}</div>
+      <div class="v">{fmt_pct(rev_yoy)}</div>
       <div class="small">"Compared to last year"</div>
     </div>
 
     <div class="card">
       <div class="k">Free cash flow (TTM)</div>
-      <div class="v">{_fmt_usd(fcf_ttm_display)}{_pill("usd")}</div>
+      <div class="v">{fmt_money(fcf)}</div>
       <div class="small">Cash left after bills & investment</div>
     </div>
 
     <div class="card">
       <div class="k">FCF margin</div>
-      <div class="v">{fmt_pct(fcf_m)}{_pill("pct")}</div>
+      <div class="v">{fmt_pct(fcf_m)}</div>
       <div class="small">Cash efficiency of sales</div>
     </div>
 
     <div class="card">
       <div class="k">FCF yield</div>
-      <div class="v">{fmt_pct(fcf_y_display)}{_pill("pct")}</div>
+      <div class="v">{fmt_pct(fcf_y)}</div>
       <div class="small">Cash return vs what you pay</div>
     </div>
 
@@ -314,9 +266,9 @@ def main(ticker: str):
 
     <div class="card wide">
       <div class="k">DCF cone (per share)</div>
-      <div class="row"><div>Bear</div><div><span class="pill">{_fmt_usd(bear_price)}</span> <span class="sub">({ups.get("bear","N/A")}%)</span></div></div>
-      <div class="row"><div>Base</div><div><span class="pill">{_fmt_usd(base_price)}</span> <span class="sub">({ups.get("base","N/A")}%)</span></div></div>
-      <div class="row"><div>Bull</div><div><span class="pill">{_fmt_usd(bull_price)}</span> <span class="sub">({ups.get("bull","N/A")}%)</span></div></div>
+      <div class="row"><div>Bear</div><div><span class="pill">{vps.get("bear_price","N/A")}</span> <span class="sub">({ups.get("bear","N/A")}%)</span></div></div>
+      <div class="row"><div>Base</div><div><span class="pill">{vps.get("base_price","N/A")}</span> <span class="sub">({ups.get("base","N/A")}%)</span></div></div>
+      <div class="row"><div>Bull</div><div><span class="pill">{vps.get("bull_price","N/A")}</span> <span class="sub">({ups.get("bull","N/A")}%)</span></div></div>
       <div class="small">Assumptions: discount {dcf.get("assumptions",{}).get("discount_rate","N/A")}, terminal growth {dcf.get("assumptions",{}).get("terminal_growth","N/A")}</div>
     </div>
 

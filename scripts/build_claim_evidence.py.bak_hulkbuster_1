@@ -234,25 +234,6 @@ def load_metric_lookup(ticker: str) -> Dict[str, Any]:
             out["bull_upside_pct"] = ud.get("bull")
         except Exception:
             pass
-    # --- Hulkbuster aliases (valuation metric normalization) ---
-    try:
-        if "fcf_yield" in out and "fcf_yield_pct" not in out:
-            out["fcf_yield_pct"] = out["fcf_yield"]
-        if "fcf_yield_ttm" in out and "fcf_yield_pct" not in out:
-            out["fcf_yield_pct"] = out["fcf_yield_ttm"]
-    except Exception:
-        pass
-    # --- Hulkbuster aliases (labor risk normalization) ---
-    try:
-        if "risk_labor_neg_30d" not in out:
-            if "risk_labor_30d" in out:
-                out["risk_labor_neg_30d"] = out["risk_labor_30d"]
-            elif "risk_labor" in out:
-                out["risk_labor_neg_30d"] = out["risk_labor"]
-    except Exception:
-        pass
-
-
 
 
 

@@ -217,44 +217,6 @@ def load_metric_lookup(ticker: str) -> Dict[str, Any]:
                 out[f"risk_{tag.lower()}_neg_7d"] = rr.get("neg_count_7d")
                 out[f"risk_{tag.lower()}_shock_30d"] = rr.get("shock_30d")
                 out[f"risk_{tag.lower()}_shock_7d"] = rr.get("shock_7d")
-    # DCF cone (per share) — enables claims on bear/base/bull
-    dcf1 = OUTPUTS / f"{ticker.upper()}_DCF.json"
-    dcf2 = REPO_ROOT / "export" / f"CANON_{ticker.upper()}" / f"{ticker.upper()}_DCF.json"
-    dcfp = dcf1 if dcf1.exists() else dcf2
-    if dcfp.exists():
-        try:
-            dcf = json.loads(dcfp.read_text(encoding="utf-8"))
-            vps = (dcf.get("valuation_per_share") or {})
-            out["bear_price"] = vps.get("bear_price")
-            out["base_price"] = vps.get("base_price")
-            out["bull_price"] = vps.get("bull_price")
-            ud = (dcf.get("upside_downside_vs_price_pct") or {})
-            out["bear_upside_pct"] = ud.get("bear")
-            out["base_upside_pct"] = ud.get("base")
-            out["bull_upside_pct"] = ud.get("bull")
-        except Exception:
-            pass
-    # --- Hulkbuster aliases (valuation metric normalization) ---
-    try:
-        if "fcf_yield" in out and "fcf_yield_pct" not in out:
-            out["fcf_yield_pct"] = out["fcf_yield"]
-        if "fcf_yield_ttm" in out and "fcf_yield_pct" not in out:
-            out["fcf_yield_pct"] = out["fcf_yield_ttm"]
-    except Exception:
-        pass
-    # --- Hulkbuster aliases (labor risk normalization) ---
-    try:
-        if "risk_labor_neg_30d" not in out:
-            if "risk_labor_30d" in out:
-                out["risk_labor_neg_30d"] = out["risk_labor_30d"]
-            elif "risk_labor" in out:
-                out["risk_labor_neg_30d"] = out["risk_labor"]
-    except Exception:
-        pass
-
-
-
-
 
     return out
 

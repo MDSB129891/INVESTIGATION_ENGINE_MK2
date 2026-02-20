@@ -211,13 +211,6 @@ def main(ticker: str):
         except Exception:
             pass
 
-    # --- DCF cone aliases (needed for HUD formatting) ---
-    _cone = (dcf or {}).get("valuation_per_share", {}) if isinstance(dcf, dict) else {}
-    bear_price = _cone.get("bear_price", None)
-    base_price = _cone.get("base_price", None)
-    bull_price = _cone.get("bull_price", None)
-
-
 
 
     html = f"""

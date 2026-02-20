@@ -41,6 +41,12 @@ def _unit_sym(u: str) -> str:
     u = (u or "").lower().strip()
     return _UNIT_SYMBOL_MAP.get(u, u)
 
+def _unit_display(u: str) -> str:
+    # show both: symbol + code (ex: "$ · usd")
+    u2 = (u or "").strip()
+    sym = _unit_sym(u2)
+    return f"{sym} · {u2}" if u2 else sym
+
 ROOT = Path(__file__).resolve().parents[2]   # repo root
 CANON = ROOT / "export"
 OUTS  = ROOT / "outputs"
@@ -208,7 +214,7 @@ def main(ticker: str):
         v = metrics.get(k)
         unit = _unit_for_key(schema, k)
         rendered = _fmt_by_unit(unit, v)
-        li_rows.append(f"<li><b>{_label(k)}</b> <span style='opacity:.7'>(<code>{_unit_sym(unit)}</code>)</span>: <span>{rendered}</span></li>")
+        li_rows.append(f"<li><b>{_label(k)}</b> <span style='opacity:.7'>(<code>{_unit_display(unit)}</code>)</span>: <span>{rendered}</span></li>")
 
     html = f"""<!doctype html>
 <html>

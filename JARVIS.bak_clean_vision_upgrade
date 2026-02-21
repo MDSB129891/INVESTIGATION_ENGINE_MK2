@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+TICKER="${1:-}"
+THESIS="${2:-}"   # optional thesis path
+MODE="${3:-mini}" # mini | all
+
+if [ -z "$TICKER" ]; then
+  echo "usage: ./JARVIS TICKER [thesis.json] [mini|all]"
+  echo ""
+  echo "mini (default): HUD + SUPER+ PDF only"
+  echo "all: HUD + Time Stone + evidence + clickpack + PDFs + docx"
+  exit 1
+fi
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+T="$(printf "%s" "$TICKER" | tr '[:lower:]' '[:upper:]')"
+
+# Core artifacts
+hud="$ROOT/export/CANON_${T}/${T}_IRONMAN_HUD.html"
+timestone="$ROOT/export/CANON_${T}/${T}_TIMESTONE.html"
+claims="$ROOT/outputs/claim_evidence_${T}.html"
+news="$ROOT/outputs/news_clickpack_${T}.html"
+
+# Memos
+pdf="$ROOT/export/${T}_Full_Investment_Memo.pdf"
+ultra="$ROOT/export/${T}_ULTRA_Memo.docx"
+superpdf="$ROOT/export/${T}_SUPER_PLUS_Memo.pdf"
+superdocx="$ROOT/export/${T}_SUPER_PLUS_Memo.docx"
+
+open_if() {
+  local f="$1"
+  if [ -f "$f" ]; then
+    echo "🚀 opening: $f"
+    open "$f" >/dev/null 2>&1 || true
+  else
+    echo "⚠️ missing: $f"
+  fi
+}
+
+echo "🤖 JARVIS (VISION) — ${T} | mode=${MODE}"
+[ -n "$THESIS" ] && echo "🧠 thesis: $THESIS"
+
+# --- MINI = ONE cockpit + ONE memo ---
+open_if "$hud"
+
+if [ -f "$superpdf" ]; then
+  open_if "$superpdf"
+else
+  open_if "$pdf"
+fi
+
+# --- ALL = open the full pack (more tabs) ---
+if [ "$MODE" = "all" ]; then
+  open_if "$timestone"
+  open_if "$claims"
+  open_if "$news"
+  open_if "$superdocx"
+  open_if "$ultra"
+fi

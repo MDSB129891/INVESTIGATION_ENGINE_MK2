@@ -78,47 +78,6 @@ RECEIPTS: Dict[str, Receipt] = {
         source_file_hint="export/CANON_{T}/news_risk_summary_{T}.json",
         source_key_hint="risk_insurance_neg_30d"
     ),
-    "mc_p10": Receipt(
-        metric="mc_p10",
-        label="Monte Carlo DCF P10 (per share)",
-        plain="A conservative valuation: in the simulation, 10% of outcomes are BELOW this price. Think 'rough worst-case' in the model.",
-        units="usd",
-        source_file_hint="export/CANON_{T}/{T}_MONTECARLO.json",
-        source_key_hint="p10"
-    ),
-    "mc_p50": Receipt(
-        metric="mc_p50",
-        label="Monte Carlo DCF P50 (per share)",
-        plain="The middle valuation: in the simulation, half the outcomes are below this and half are above. Think 'typical' model outcome.",
-        units="usd",
-        source_file_hint="export/CANON_{T}/{T}_MONTECARLO.json",
-        source_key_hint="p50"
-    ),
-    "mc_p90": Receipt(
-        metric="mc_p90",
-        label="Monte Carlo DCF P90 (per share)",
-        plain="An optimistic valuation: in the simulation, 10% of outcomes are ABOVE this price. Think 'good-case' in the model.",
-        units="usd",
-        source_file_hint="export/CANON_{T}/{T}_MONTECARLO.json",
-        source_key_hint="p90"
-    ),
-    "prob_down_20pct": Receipt(
-        metric="prob_down_20pct",
-        label="Probability of ≥20% downside",
-        plain="In the simulation, how often intrinsic value ends up 20% or more BELOW the current price. Higher = more downside frequency.",
-        units="pct",
-        source_file_hint="export/CANON_{T}/{T}_MONTECARLO.json",
-        source_key_hint="prob_down_20pct"
-    ),
-    "prob_up_20pct": Receipt(
-        metric="prob_up_20pct",
-        label="Probability of ≥20% upside",
-        plain="In the simulation, how often intrinsic value ends up 20% or more ABOVE the current price. Higher = more upside frequency.",
-        units="pct",
-        source_file_hint="export/CANON_{T}/{T}_MONTECARLO.json",
-        source_key_hint="prob_up_20pct"
-    ),
-
 }
 
 def get_receipt(metric: str) -> Optional[Receipt]:

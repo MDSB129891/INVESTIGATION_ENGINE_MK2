@@ -5,15 +5,6 @@ TICKER="${1:-}"
 THESIS_INPUT="${2:-}"   # thesis.json OR plain english string
 MODE="${3:-mini}"       # mini | all
 
-# If user calls: ./JARVIS TICKER all   (no thesis)
-# treat arg2 as MODE (mini|all) and clear THESIS_INPUT.
-if [ -n "${THESIS_INPUT:-}" ] && [ -z "${3:-}" ]; then
-  if [ "$THESIS_INPUT" = "mini" ] || [ "$THESIS_INPUT" = "all" ]; then
-    MODE="$THESIS_INPUT"
-    THESIS_INPUT=""
-  fi
-fi
-
 if [ -z "$TICKER" ]; then
   echo "usage: ./JARVIS TICKER [thesis.json | \"thesis string\"] [mini|all]"
   exit 1

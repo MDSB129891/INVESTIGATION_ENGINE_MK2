@@ -37,9 +37,7 @@ echo "=== 4) Alerts (thesis breakers + red lines) ==="
 python3 scripts/build_alerts.py --ticker "${TICKER}"
 
 echo "=== 4.5) Claim evidence (Stormbreaker) ==="
-echo "=== 4.6) Receipts Index (proof / audit trail) ==="
-python3 scripts/build_receipts_index.py --ticker "${TICKER}"
-
+echo "=== 4.5) Claim evidence (Stormbreaker) ==="
 if [[ -n "${ACTIVE_THESIS}" ]]; then
   python3 scripts/build_claim_evidence.py --ticker "$TICKER" --thesis "${ACTIVE_THESIS}" || true
 else

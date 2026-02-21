@@ -1,0 +1,394 @@
+#!/usr/bin/env python3
+import argparse, json, os
+from pathlib import Path
+from datetime import datetime, timezone
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+def _load_json(p: Path, default):
+    try:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        return default
+
+def _fmt_utc(ts=None):
+    if ts is None:
+        ts = datetime.now(timezone.utc)
+    return ts.strftime("%Y-%m-%d %H:%M UTC")
+
+def _canon_dir(t: str) -> Path:
+    return REPO_ROOT / "export" / f"CANON_{t}"
+
+def _pick(paths):
+    for p in paths:
+        if p and Path(p).exists():
+            return Path(p)
+    return None
+
+def _mtime_iso(p: Path):
+    try:
+        return datetime.fromtimestamp(p.stat().st_mtime, tz=timezone.utc).isoformat().replace("+00:00", "Z")
+    except Exception:
+        return None
+
+def _receipt_from_metric_receipts(metric_key: str):
+    """
+    Optional: if scripts/metric_receipts.py exists, use it.
+    Fallback: minimal generic explanation.
+    """
+    try:
+        from scripts.metric_receipts import get_receipt  # type: ignore
+        r = get_receipt(metric_key)
+        if isinstance(r, dict) and r:
+            return r
+    except Exception:
+        pass
+
+    # fallback (won't break builds)
+    return {
+        "what_it_is": metric_key,
+        "why_it_matters": "Metric used by the engine. Add a receipt entry to scripts/metric_receipts.py for richer explanations.",
+        "units": "N/A",
+        "source_file": "N/A",
+        "source_key": "N/A",
+    }
+
+def main(ticker: str):
+    T = ticker.upper()
+    canon = _canon_dir(T)
+    canon.mkdir(parents=True, exist_ok=True)
+
+    # Core inputs we already generate
+    decision_summary = _pick([REPO_ROOT / "outputs" / "decision_summary.json"])
+    decision_core = _pick([canon / f"{T}_DECISION_CORE.json"])
+    dcf = _pick([canon / f"{T}_DCF.json"])
+    mc = _pick([canon / f"{T}_MONTECARLO.json"])
+    risk = _pick([canon / f"news_risk_summary_{T}.json", REPO_ROOT / "outputs" / f"news_risk_summary_{T}.json"])
+    veracity = _pick([REPO_ROOT / "outputs" / f"veracity_{T}.json"])
+    alerts = _pick([REPO_ROOT / "outputs" / f"alerts_{T}.json"])
+    claim_ev = _pick([REPO_ROOT / "outputs" / f"claim_evidence_{T}.json"])
+
+    ds = _load_json(decision_summary, {})
+    dc = _load_json(decision_core, {})
+    rk = _load_json(risk, {})
+    mcc = _load_json(mc, {})
+    dcfj = _load_json(dcf, {})
+    vz = _load_json(veracity, {})
+    al = _load_json(alerts, {})
+    ce = _load_json(claim_ev, {})
+
+    # Build a small “what we used” map (the receipts spine)
+    # We include key metrics that users will argue about most.
+    metric_keys = [
+        "score", "rating",
+        "latest_revenue_yoy_pct",
+        "latest_free_cash_flow",
+        "latest_fcf_margin_pct",
+        "fcf_yield_pct",
+        "news_shock_30d",
+        "risk_insurance_neg_30d",
+        "risk_regulatory_neg_30d",
+        "risk_labor_neg_30d",
+        "mc_p10","mc_p50","mc_p90",
+        "prob_down_20pct","prob_up_20pct",
+    ]
+
+    # Actuals (best-effort)
+    actuals = {
+        "score": ds.get("score"),
+        "rating": ds.get("rating"),
+    }
+
+    # decision_core metrics (varies by build)
+    m = (dc.get("metrics") or {}) if isinstance(dc, dict) else {}
+    if isinstance(m, dict):
+        # fcf yield often lives here
+        actuals.setdefault("fcf_yield_pct", m.get("fcf_yield") or m.get("fcf_yield_pct") or m.get("fcf_yield"))
+    # annual history last row is already used by your engine; use it as the canonical place for “latest_*”
+    annual = _pick([REPO_ROOT / "data" / "processed" / "fundamentals_annual_history.csv"])
+    if annual and annual.exists():
+        import csv
+        rows = []
+        # utf-8-sig handles BOM cleanly
+        with open(annual, "r", encoding="utf-8-sig", newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                # normalize keys (strip spaces)
+                row2 = { (k.strip() if isinstance(k,str) else k): (v.strip() if isinstance(v,str) else v) for k,v in row.items() }
+                # skip empty lines
+                if any((v or "").strip() for v in row2.values()):
+                    rows.append(row2)
+
+        def _pd(x):
+            s = str(x or '').strip()
+            return s  # YYYY-MM-DD sorts lexicographically
+
+        last = max(rows, key=lambda r: _pd(r.get('period_end'))) if rows else None
+
+        def _to_float(x):
+            try:
+                if x is None: return None
+                xs = str(x).strip()
+                if xs == "" or xs.lower() == "n/a": return None
+                return float(xs)
+            except Exception:
+                return None
+
+        if last:
+            actuals.setdefault("latest_revenue_yoy_pct", _to_float(last.get("revenue_yoy_pct")))
+            actuals.setdefault("latest_free_cash_flow", _to_float(last.get("free_cash_flow")))
+            actuals.setdefault("latest_fcf_margin_pct", _to_float(last.get("fcf_margin_pct")))
+
+    # risk summary
+    if isinstance(rk, dict):
+        actuals.setdefault("news_shock_30d", rk.get("news_shock_30d"))
+        actuals.setdefault("risk_insurance_neg_30d", rk.get("risk_insurance_neg_30d"))
+        actuals.setdefault("risk_regulatory_neg_30d", rk.get("risk_regulatory_neg_30d"))
+        actuals.setdefault("risk_labor_neg_30d", rk.get("risk_labor_neg_30d"))
+
+    # monte carlo
+    if isinstance(mcc, dict):
+        actuals.setdefault("mc_p10", mcc.get("p10"))
+        actuals.setdefault("mc_p50", mcc.get("p50"))
+        actuals.setdefault("mc_p90", mcc.get("p90"))
+        actuals.setdefault("prob_down_20pct", mcc.get("prob_down_20pct"))
+        actuals.setdefault("prob_up_20pct", mcc.get("prob_up_20pct"))
+
+    # receipts
+    # Built-in receipt overrides for core items (so they never show as N/A)
+    builtin = {
+        "score": {
+            "what_it_is": "Decision Engine score (0–100)",
+            "why_it_matters": "A summarized strength score combining cash, valuation, growth, quality, and balance risk.",
+            "units": "score",
+            "source_file": "outputs/decision_summary.json",
+            "source_key": "score",
+        },
+        "rating": {
+            "what_it_is": "Decision Engine rating",
+            "why_it_matters": "Human-readable verdict bucket derived from the score (e.g., BUY/HOLD/SELL).",
+            "units": "label",
+            "source_file": "outputs/decision_summary.json",
+            "source_key": "rating",
+        },
+        "latest_revenue_yoy_pct": {
+            "what_it_is": "Revenue growth (YoY)",
+            "why_it_matters": "How fast sales are growing vs last year. Growth supports the story; shrinkage is a warning sign.",
+            "units": "pct",
+            "source_file": "data/processed/fundamentals_annual_history.csv",
+            "source_key": "revenue_yoy_pct (latest row)",
+        },
+        "latest_free_cash_flow": {
+            "what_it_is": "Free cash flow (annual latest)",
+            "why_it_matters": "Cash left after paying bills and necessary investment. Positive FCF = flexibility.",
+            "units": "usd",
+            "source_file": "data/processed/fundamentals_annual_history.csv",
+            "source_key": "free_cash_flow (latest row)",
+        },
+        "latest_fcf_margin_pct": {
+            "what_it_is": "FCF margin (annual latest)",
+            "why_it_matters": "Of every $1 of sales, how much becomes real cash. Higher = more efficient.",
+            "units": "pct",
+            "source_file": "data/processed/fundamentals_annual_history.csv",
+            "source_key": "fcf_margin_pct (latest row)",
+        },
+        "news_shock_30d": {
+            "what_it_is": "News shock (30d)",
+            "why_it_matters": "Headline intensity score. More negative = worse headlines. Risk temperature, not fundamentals.",
+            "units": "score",
+            "source_file": f"export/CANON_{T}/news_risk_summary_{T}.json",
+            "source_key": "news_shock_30d",
+        },
+    }
+
+    receipts = []
+    for k in metric_keys:
+        rec = _receipt_from_metric_receipts(k) or {}
+        if (not rec or (isinstance(rec, dict) and rec.get('source_file') in (None,'N/A'))) and k in builtin:
+            rec = builtin[k]
+        receipts.append({
+            "metric": k,
+            "actual": actuals.get(k),
+            "what_it_is": rec.get("what_it_is") or rec.get("what it is") or rec.get("what_it_is"),
+            "why_it_matters": rec.get("why_it_matters") or rec.get("why it matters") or rec.get("why_it_matters"),
+            "units": rec.get("units"),
+            "source_file": rec.get("source_file"),
+            "source_key": rec.get("source_key"),
+        })
+
+    payload = {
+        "ticker": T,
+        "generated_utc": datetime.now(timezone.utc).isoformat().replace("+00:00","Z"),
+        "sources": {
+            "decision_summary": str(decision_summary) if decision_summary else None,
+            "decision_core": str(decision_core) if decision_core else None,
+            "dcf": str(dcf) if dcf else None,
+            "montecarlo": str(mc) if mc else None,
+            "news_risk_summary": str(risk) if risk else None,
+            "veracity": str(veracity) if veracity else None,
+            "alerts": str(alerts) if alerts else None,
+            "claim_evidence": str(claim_ev) if claim_ev else None,
+            "annual_history_csv": str(annual) if annual else None,
+        },
+        "source_mtime_utc": {
+            "decision_summary": _mtime_iso(decision_summary) if decision_summary else None,
+            "decision_core": _mtime_iso(decision_core) if decision_core else None,
+            "dcf": _mtime_iso(dcf) if dcf else None,
+            "montecarlo": _mtime_iso(mc) if mc else None,
+            "news_risk_summary": _mtime_iso(risk) if risk else None,
+        },
+        "headline": {
+            "score": ds.get("score"),
+            "rating": ds.get("rating"),
+            "bucket_scores": ds.get("bucket_scores"),
+            "news_shock_30d": rk.get("news_shock_30d") if isinstance(rk, dict) else None,
+        },
+        "receipts": receipts,
+        "notes_plain_english": [
+            "This page is a 'receipt' for the engine: what files were used, what key numbers were read, and what each number means.",
+            "If someone questions a value, you can point them to (source_file, source_key) and re-run the engine.",
+            "Most outputs are deterministic except the Monte Carlo (seeded) which intentionally samples around the DCF cone."
+        ]
+    }
+
+    out_json = REPO_ROOT / "outputs" / f"receipts_{T}.json"
+    # --- Apply human-friendly receipts (what it is / why it matters / units / source) ---
+    # Prefer scripts/metric_receipts.py entries over generic fallback text.
+    get_receipt = None
+    try:
+        from scripts.metric_receipts import get_receipt  # type: ignore
+    except Exception:
+        try:
+            import sys
+            from pathlib import Path as _P
+            # add repo root to sys.path so `scripts.*` imports work when running as a file
+            sys.path.insert(0, str(_P(__file__).resolve().parents[1]))
+            from scripts.metric_receipts import get_receipt  # type: ignore
+        except Exception:
+            get_receipt = None
+
+    if get_receipt:
+        for row in payload.get("receipts", []):
+            metric = row.get("metric")
+            if not metric:
+                continue
+            r = get_receipt(metric)
+            if not r:
+                continue
+
+            # Replace fallback text with real explanations
+            row["what_it_is"] = r.label
+            row["why_it_matters"] = r.plain
+            row["units"] = r.units
+
+            # Only fill source if missing/N/A (so computed receipts keep their sources)
+            if row.get("source_file") in (None, "N/A"):
+                row["source_file"] = (r.source_file_hint or "N/A").replace("{T}", T)
+            if row.get("source_key") in (None, "N/A"):
+                row["source_key"] = (r.source_key_hint or "N/A").replace("{T}", T)
+    out_json.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+    # HTML
+    def esc(x):
+        return (str(x)
+                .replace("&","&amp;")
+                .replace("<","&lt;")
+                .replace(">","&gt;"))
+
+    rows = []
+    for r in receipts:
+        rows.append(f"""
+        <tr>
+          <td><code>{esc(r.get('metric'))}</code></td>
+          <td><code>{esc(r.get('actual'))}</code></td>
+          <td>{esc(r.get('what_it_is') or '')}</td>
+          <td>{esc(r.get('why_it_matters') or '')}</td>
+          <td><code>{esc(r.get('units') or '')}</code></td>
+          <td><code>{esc(r.get('source_file') or '')}</code><br/><span style="opacity:.75"><code>{esc(r.get('source_key') or '')}</code></span></td>
+        </tr>
+        """)
+
+    html = f"""<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>RECEIPTS — {T}</title>
+<style>
+  body {{ font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Arial; margin:0; background:#0b0f14; color:#d7e3f4; }}
+  .wrap {{ max-width: 1100px; margin: 0 auto; padding: 24px; }}
+  h1 {{ margin:0; font-size: 26px; }}
+  .sub {{ opacity:0.75; margin-top:6px; }}
+  .card {{ background:#121a24; border:1px solid #1f2a3a; border-radius:14px; padding:14px; margin-top:14px; }}
+  table {{ width:100%; border-collapse: collapse; margin-top:10px; font-size: 14px; }}
+  th, td {{ border-bottom:1px solid #1f2a3a; padding:10px; vertical-align: top; }}
+  th {{ text-align:left; opacity:0.8; font-size:12px; text-transform:uppercase; letter-spacing:0.08em; }}
+  code {{ background:#0e2236; border:1px solid #1a3a5a; padding:2px 6px; border-radius:999px; }}
+  a {{ color:#7cc4ff; text-decoration:none; }}
+  .small {{ font-size: 14px; opacity: 0.85; line-height:1.35; }}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>RECEIPTS — {T}</h1>
+  <div class="sub">“Show your work” pack · Generated: {_fmt_utc()}</div>
+
+  <div class="card">
+    <div class="small"><b>What this is:</b> a plain-English audit trail of the model’s key numbers (actuals), where they came from (file + field),
+    and why they matter. If someone disagrees, they can point to the exact input and re-run.</div>
+  </div>
+
+  <div class="card">
+    <div class="small"><b>Headline</b></div>
+    <div class="small">Score: <code>{esc(payload["headline"].get("score"))}</code> · Rating: <code>{esc(payload["headline"].get("rating"))}</code></div>
+    <div class="small">News shock (30d): <code>{esc(payload["headline"].get("news_shock_30d"))}</code></div>
+  </div>
+
+  <div class="card">
+    <div class="small"><b>Sources used</b> (paths + file timestamps)</div>
+    <div class="small"><pre style="white-space:pre-wrap;margin:10px 0 0 0;">{esc(json.dumps(payload["sources"], indent=2))}</pre></div>
+    <div class="small"><pre style="white-space:pre-wrap;margin:10px 0 0 0;">{esc(json.dumps(payload["source_mtime_utc"], indent=2))}</pre></div>
+  </div>
+
+  <div class="card">
+    <div class="small"><b>Receipts table</b> (key metrics)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>Actual</th>
+          <th>What it is</th>
+          <th>Why it matters</th>
+          <th>Units</th>
+          <th>Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        {''.join(rows)}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="small"><b>Next</b>: <a href="../CANON_{T}/{T}_IRONMAN_HUD.html">IRONMAN HUD</a> ·
+      <a href="../CANON_{T}/{T}_TIMESTONE.html">Time Stone</a> ·
+      <a href="../../outputs/news_clickpack_{T}.html">News clickpack</a> ·
+      <a href="../../outputs/claim_evidence_{T}.html">Claim evidence</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
+"""
+    out_html = REPO_ROOT / "outputs" / f"receipts_{T}.html"
+    out_html.write_text(html, encoding="utf-8")
+
+    print("DONE ✅ receipts created:")
+    print("-", out_json)
+    print("-", out_html)
+
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--ticker", required=True)
+    args = ap.parse_args()
+    main(args.ticker)

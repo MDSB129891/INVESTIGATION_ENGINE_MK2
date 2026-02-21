@@ -3,14 +3,13 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 TICKER="${1:-UBER}"
-ACTIVE_THESIS="${2:-theses/${TICKER}_thesis_base.json}"
+THESIS_PATH="${2:-theses/${TICKER}_thesis_base.json}"
+THESIS_PATH="${THESIS_OVERRIDE:-theses/${TICKER}_thesis_base.json}"
+THESIS_PATH="${THESIS_OVERRIDE:-theses/${TICKER}_thesis_base.json}"
+THESIS_PATH="${2:-}"
 
 echo "🟣 THANOS RUN: ${TICKER}"
-echo "Thesis override: ${ACTIVE_THESIS:-<none>}"
-BASE_THESIS="theses/${TICKER}_thesis_base.json"
-ACTIVE_THESIS="${THESIS_OVERRIDE:-$BASE_THESIS}"
-echo "Thesis used: ${ACTIVE_THESIS}"
-
+echo "Thesis override: ${THESIS_PATH:-<none>}"
 
 # Universe: you can change peers here if you want (or pass UNIVERSE env)
 export UNIVERSE="${UNIVERSE:-${TICKER},LYFT,DASH}"
@@ -37,17 +36,11 @@ echo "=== 4) Alerts (thesis breakers + red lines) ==="
 python3 scripts/build_alerts.py --ticker "${TICKER}"
 
 echo "=== 4.5) Claim evidence (Stormbreaker) ==="
-echo "=== 4.6) Receipts Index (proof / audit trail) ==="
-python3 scripts/build_receipts_index.py --ticker "${TICKER}"
+python3 scripts/build_claim_evidence.py --ticker "$TICKER" --thesis "theses/${TICKER}_thesis_base.json"
 
-if [[ -n "${ACTIVE_THESIS}" ]]; then
-  python3 scripts/build_claim_evidence.py --ticker "$TICKER" --thesis "${ACTIVE_THESIS}" || true
-else
-  echo "⚠️ Claim evidence skipped: no ACTIVE_THESIS"
-fi
 echo "=== 5) Full memo (novice friendly + verdict + scenarios) ==="
-if [[ -n "${ACTIVE_THESIS}" ]]; then
-  python3 scripts/build_investment_memo.py --ticker "${TICKER}" --thesis "${ACTIVE_THESIS}"
+if [[ -n "${THESIS_PATH}" ]]; then
+  python3 scripts/build_investment_memo.py --ticker "${TICKER}" --thesis "${THESIS_PATH}"
 else
   python3 scripts/build_investment_memo.py --ticker "${TICKER}"
 fi

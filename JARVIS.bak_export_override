@@ -5,15 +5,6 @@ TICKER="${1:-}"
 THESIS_INPUT="${2:-}"   # thesis.json OR plain english string
 MODE="${3:-mini}"       # mini | all
 
-# If user calls: ./JARVIS TICKER all   (no thesis)
-# treat arg2 as MODE (mini|all) and clear THESIS_INPUT.
-if [ -n "${THESIS_INPUT:-}" ] && [ -z "${3:-}" ]; then
-  if [ "$THESIS_INPUT" = "mini" ] || [ "$THESIS_INPUT" = "all" ]; then
-    MODE="$THESIS_INPUT"
-    THESIS_INPUT=""
-  fi
-fi
-
 if [ -z "$TICKER" ]; then
   echo "usage: ./JARVIS TICKER [thesis.json | \"thesis string\"] [mini|all]"
   exit 1
@@ -69,7 +60,6 @@ hud="$ROOT/export/CANON_${T}/${T}_IRONMAN_HUD.html"
 timestone="$ROOT/export/CANON_${T}/${T}_TIMESTONE.html"
 claims="$ROOT/outputs/claim_evidence_${T}.html"
 news="$ROOT/outputs/news_clickpack_${T}.html"
-receipts="$ROOT/outputs/receipts_${T}.html"
 
 pdf="$ROOT/export/${T}_Full_Investment_Memo.pdf"
 ultra="$ROOT/export/${T}_ULTRA_Memo.docx"
@@ -100,7 +90,6 @@ if [ "$MODE" = "all" ]; then
   open_if "$timestone"
   open_if "$claims"
   open_if "$news"
-  open_if "$receipts"
   open_if "$superdocx"
   open_if "$ultra"
 fi

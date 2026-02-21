@@ -7,3 +7,14 @@ export/*.docx
 export/*.pdf
 data/processed/*.csv
 data/raw/*_raw.csv
+
+# ---- local + generated ----
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# ---- generated artifacts ----
+outputs/
+export/
+data/processed/

@@ -53,11 +53,6 @@ echo "=== 5b) Export PDF ==="
 python3 scripts/export_pdf.py --ticker "${TICKER}"
 
 echo "=== 6) One-page dashboard (links everything) ==="
-
-echo ""
-echo "=== 7) Time Stone (history view over time) ==="
-python3 scripts/build_timestone.py --ticker "$TICKER" || true
-
 python3 scripts/generate_dashboard.py --ticker "${TICKER}"
 
 echo ""

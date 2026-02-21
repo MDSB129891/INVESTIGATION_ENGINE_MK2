@@ -3,11 +3,7 @@ import argparse, json, math, subprocess
 from pathlib import Path
 import pandas as pd
 from docx import Document
-try:
-    from scripts.metric_receipts import get_receipt  # when repo root is on PYTHONPATH
-except Exception:
-    from metric_receipts import get_receipt          # when running as: python3 scripts/build_super_plus.py
-
+from scripts.metric_receipts import get_receipt
 
 def _load_news_risk_summary(ticker: str) -> dict:
     """

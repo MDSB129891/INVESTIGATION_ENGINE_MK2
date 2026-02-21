@@ -3,11 +3,6 @@ import argparse, json, math, subprocess
 from pathlib import Path
 import pandas as pd
 from docx import Document
-try:
-    from scripts.metric_receipts import get_receipt  # when repo root is on PYTHONPATH
-except Exception:
-    from metric_receipts import get_receipt          # when running as: python3 scripts/build_super_plus.py
-
 
 def _load_news_risk_summary(ticker: str) -> dict:
     """
@@ -193,22 +188,6 @@ def _claim_actuals_map(row, rs):
         "risk_labor_neg_30d": row.get("risk_labor_neg_30d"),
     }
 
-
-def _receipt_lines(metric: str, T: str):
-    r = get_receipt(metric)
-    if not r:
-        return []
-    sf = (r.source_file_hint or "").replace("{T}", T)
-    sk = (r.source_key_hint or "").replace("{T}", T)
-    out = []
-    out.append(f"  - what it is: {r.label}")
-    out.append(f"  - why it matters: {r.plain}")
-    out.append(f"  - units: {r.units}")
-    out.append(f"  - source (file): `{sf}`")
-    out.append(f"  - source (key): `{sk}`")
-    return out
-
-
 def _compare(op: str, actual, thresh):
     if _na(actual) or _na(thresh): return None
     a = float(actual); t = float(thresh)
@@ -385,9 +364,6 @@ def main(ticker: str, thesis_path: Path):
             md.append(f"- **{status}** — {label}")
             md.append(f"  - rule: `{metric}` {op} {thr_disp}")
             md.append(f"  - actual: **{act_disp}**")
-            # --- VISION: receipts (plain-English + source) ---
-            md.extend(_receipt_lines(metric, T))
-
     md.append("")
 
     # Thesis-specific guidance (your “drivers become employees” risk)

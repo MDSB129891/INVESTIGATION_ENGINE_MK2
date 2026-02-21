@@ -178,7 +178,7 @@ def main(ticker: str):
             risk_safe  = _r.get("risk_safety_neg_30d", 0)
             risk_comp  = _r.get("risk_competition_neg_30d", 0)
             risk_total = _r.get("risk_total_30d", risk_labor + risk_reg + risk_ins + risk_safe + risk_comp)
-            risk_shock = _r.get("news_shock_30d", _r.get("news_shock", "N/A"))
+            risk_shock = _r.get("news_shock", "N/A")
             risk_generated = _r.get("generated_at", "N/A")
     except Exception:
         pass
@@ -419,7 +419,7 @@ def main(ticker: str):
     </div>
 
   <div class="small" style="margin-top:14px;">
-    Open next: <a href="UBER_TIMESTONE.html">Time Stone</a> · <a href="UBER_DATA_DICTIONARY.json">Receipts</a> · <a href="decision_dashboard_{T}.html">Dashboard</a> · <a href="news_clickpack_{T}.html">News clickpack</a> · <a href="claim_evidence_{T}.html">Claim evidence</a>
+    Open next: <a href="UBER_TIMESTONE.html">Time Stone</a> · <a href="decision_dashboard_{T}.html">Dashboard</a> · <a href="news_clickpack_{T}.html">News clickpack</a> · <a href="claim_evidence_{T}.html">Claim evidence</a>
   </div>
 </div>
 </body>

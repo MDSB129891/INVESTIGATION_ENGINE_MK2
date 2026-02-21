@@ -3,26 +3,19 @@ set -euo pipefail
 
 TICKER="${1:-}"
 THESIS="${2:-}"   # optional thesis path
-MODE="${3:-mini}" # mini | all
-
 if [ -z "$TICKER" ]; then
-  echo "usage: ./JARVIS TICKER [thesis.json] [mini|all]"
-  echo ""
-  echo "mini (default): HUD + SUPER+ PDF only"
-  echo "all: HUD + Time Stone + evidence + clickpack + PDFs + docx"
+  echo "usage: ./JARVIS TICKER [thesis.json]"
   exit 1
 fi
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 T="$(printf "%s" "$TICKER" | tr '[:lower:]' '[:upper:]')"
 
-# Core artifacts
+dash="$ROOT/outputs/decision_dashboard_${T}.html"
 hud="$ROOT/export/CANON_${T}/${T}_IRONMAN_HUD.html"
 timestone="$ROOT/export/CANON_${T}/${T}_TIMESTONE.html"
 claims="$ROOT/outputs/claim_evidence_${T}.html"
 news="$ROOT/outputs/news_clickpack_${T}.html"
-
-# Memos
 pdf="$ROOT/export/${T}_Full_Investment_Memo.pdf"
 ultra="$ROOT/export/${T}_ULTRA_Memo.docx"
 superpdf="$ROOT/export/${T}_SUPER_PLUS_Memo.pdf"
@@ -38,23 +31,24 @@ open_if() {
   fi
 }
 
-echo "🤖 JARVIS (VISION) — ${T} | mode=${MODE}"
-[ -n "$THESIS" ] && echo "🧠 thesis: $THESIS"
+echo "🤖 JARVIS (VISION mode) — ${T}"
 
-# --- MINI = ONE cockpit + ONE memo ---
+# Open exactly one dashboard (prefer outputs/)
+# open_if "$dash"  # VISION: HUD is the cockpit; dashboard is linked from HUD
+
+# Then the cockpit + evidence
 open_if "$hud"
+open_if "$timestone"
+open_if "$claims"
+open_if "$news"
 
+# Prefer SUPER+ PDF if present, else Full memo PDF
 if [ -f "$superpdf" ]; then
   open_if "$superpdf"
 else
   open_if "$pdf"
 fi
 
-# --- ALL = open the full pack (more tabs) ---
-if [ "$MODE" = "all" ]; then
-  open_if "$timestone"
-  open_if "$claims"
-  open_if "$news"
-  open_if "$superdocx"
-  open_if "$ultra"
-fi
+# Optional docs last
+open_if "$superdocx"
+open_if "$ultra"

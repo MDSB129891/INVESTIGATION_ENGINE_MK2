@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import re
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -187,9 +188,15 @@ def load_metric_lookup(ticker: str) -> Dict[str, Any]:
     c = PROCESSED / "comps_snapshot.csv"
     if c.exists():
         df = pd.read_csv(c)
-        if "symbol" in df.columns:
-            df["symbol"] = df["symbol"].astype(str).str.upper()
-            r = df[df["symbol"] == ticker.upper()]
+        # accept common identifier columns
+        id_col = None
+        for cand in ["symbol", "ticker", "Symbol", "Ticker"]:
+            if cand in df.columns:
+                id_col = cand
+                break
+        if id_col is not None:
+            df[id_col] = df[id_col].astype(str).str.upper()
+            r = df[df[id_col] == ticker.upper()]
             if not r.empty:
                 row = r.iloc[0].to_dict()
                 # keep everything
@@ -197,6 +204,7 @@ def load_metric_lookup(ticker: str) -> Dict[str, Any]:
                     out[str(k)] = v
 
     # risk dashboard
+ # risk dashboard
     r = PROCESSED / "news_risk_dashboard.csv"
     if r.exists():
         df = pd.read_csv(r)
@@ -210,6 +218,100 @@ def load_metric_lookup(ticker: str) -> Dict[str, Any]:
                 out[f"risk_{tag.lower()}_neg_7d"] = rr.get("neg_count_7d")
                 out[f"risk_{tag.lower()}_shock_30d"] = rr.get("shock_30d")
                 out[f"risk_{tag.lower()}_shock_7d"] = rr.get("shock_7d")
+    # DCF cone (per share) — enables claims on bear/base/bull
+    dcf1 = OUTPUTS / f"{ticker.upper()}_DCF.json"
+    dcf2 = REPO_ROOT / "export" / f"CANON_{ticker.upper()}" / f"{ticker.upper()}_DCF.json"
+    dcfp = dcf1 if dcf1.exists() else dcf2
+    if dcfp.exists():
+        try:
+            dcf = json.loads(dcfp.read_text(encoding="utf-8"))
+            vps = (dcf.get("valuation_per_share") or {})
+            out["bear_price"] = vps.get("bear_price")
+            out["base_price"] = vps.get("base_price")
+            out["bull_price"] = vps.get("bull_price")
+            ud = (dcf.get("upside_downside_vs_price_pct") or {})
+            out["bear_upside_pct"] = ud.get("bear")
+            out["base_upside_pct"] = ud.get("base")
+            out["bull_upside_pct"] = ud.get("bull")
+        except Exception:
+            pass
+    # --- Hulkbuster aliases (valuation metric normalization) ---
+    try:
+        if "fcf_yield" in out and "fcf_yield_pct" not in out:
+            out["fcf_yield_pct"] = out["fcf_yield"]
+        if "fcf_yield_ttm" in out and "fcf_yield_pct" not in out:
+            out["fcf_yield_pct"] = out["fcf_yield_ttm"]
+    except Exception:
+        pass
+    # --- Hulkbuster aliases (labor risk normalization) ---
+    try:
+        if "risk_labor_neg_30d" not in out:
+            if "risk_labor_30d" in out:
+                out["risk_labor_neg_30d"] = out["risk_labor_30d"]
+            elif "risk_labor" in out:
+                out["risk_labor_neg_30d"] = out["risk_labor"]
+    except Exception:
+        pass
+
+    # --- Hulkbuster: normalize valuation/risk fields so claims never go UNKNOWN/WRONG ---
+    # A) If comps snapshot provides fcf_yield as a DECIMAL (e.g., 0.06), convert to PERCENT (6.0)
+    try:
+        if out.get("fcf_yield_pct") is None:
+            fy = out.get("fcf_yield")
+            if fy is not None:
+                try:
+                    v = float(str(fy).strip())
+                    # if it's a fraction (< 1.5), assume decimal and convert to percent
+                    if 0 <= v < 1.5:
+                        out["fcf_yield_pct"] = v * 100.0
+                    else:
+                        out["fcf_yield_pct"] = v
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+    # B) Pull risk/news shock from news_risk_summary (outputs OR CANON) if missing
+    try:
+        cand = [
+            REPO_ROOT / "outputs" / f"news_risk_summary_{ticker.upper()}.json",
+            REPO_ROOT / "export" / f"CANON_{ticker.upper()}" / f"news_risk_summary_{ticker.upper()}.json",
+        ]
+        for rp in cand:
+            if rp.exists():
+                rj = json.loads(rp.read_text(encoding="utf-8"))
+                for k in [
+                    "news_shock_30d","news_shock_7d",
+                    "risk_labor_neg_30d","risk_regulatory_neg_30d","risk_insurance_neg_30d",
+                    "risk_safety_neg_30d","risk_competition_neg_30d","risk_total_30d",
+                ]:
+                    if out.get(k) is None:
+                        out[k] = rj.get(k)
+                break
+    except Exception:
+        pass
+
+    # --- Hulkbuster: fix fcf_yield_pct units ---
+    try:
+        # If pct is present but looks like a decimal (0.06), convert to percent (6.0)
+        if out.get("fcf_yield_pct") is not None:
+            v = float(str(out.get("fcf_yield_pct")).strip())
+            if 0 <= v < 1.5:
+                out["fcf_yield_pct"] = v * 100.0
+        # If pct missing but fcf_yield exists, use it (and convert if decimal)
+        elif out.get("fcf_yield") is not None:
+            v = float(str(out.get("fcf_yield")).strip())
+            out["fcf_yield_pct"] = (v * 100.0) if 0 <= v < 1.5 else v
+    except Exception:
+        pass
+
+
+
+
+
+
+
+
 
     return out
 

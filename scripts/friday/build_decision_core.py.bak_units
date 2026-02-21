@@ -1,0 +1,69 @@
+import json
+from pathlib import Path
+import argparse
+
+def clamp(x):
+    return max(0,min(100,x))
+
+def main(t):
+    CANON = Path(f"export/CANON_{t}")
+
+    core = json.load(open(CANON/f"{t}_CORE_METRICS.json"))
+    dcf = json.load(open(CANON/f"{t}_DCF.json"))
+    alerts = json.load(open(CANON/f"alerts_{t}.json"))
+
+    fundamentals = core.get("score",70)
+
+    val = dcf["upside_downside_vs_price_pct"]["base"]
+    valuation = clamp(50 + val)
+
+    danger = clamp(len(alerts.get("alerts",[]))*15)
+    thesis = clamp(100-danger)
+
+    news = clamp(100-core.get("news_shock",20))
+
+    decision = round(
+        0.35*fundamentals +
+        0.25*valuation +
+        0.25*thesis +
+        0.15*news
+    ,1)
+
+    mode = "ACCUMULATE" if decision>70 else "HOLD" if decision>50 else "AVOID"
+
+    out = {
+        "decision_score":decision,
+        "mode":mode,
+        "fundamentals":fundamentals,
+        "valuation":valuation,
+        "thesis_confidence":thesis,
+        "news_stability":news
+    }
+
+    j = CANON/f"{t}_DECISION_CORE.json"
+    h = CANON/f"{t}_DECISION_CORE.html"
+
+    j.write_text(json.dumps(out,indent=2))
+
+    h.write_text(f"""
+<html><body style='background:black;color:#0f0;font-family:monospace'>
+<h1>{t} — DECISION CORE</h1>
+<h2>DEPLOY SCORE: {decision}</h2>
+<h3>MODE: {mode}</h3>
+<ul>
+<li>Fundamentals: {fundamentals}</li>
+<li>Valuation: {valuation}</li>
+<li>Thesis Confidence: {thesis}</li>
+<li>News Stability: {news}</li>
+</ul>
+</body></html>
+""")
+
+    print("DONE ✅",j)
+    print("DONE ✅",h)
+
+if __name__=="__main__":
+    ap=argparse.ArgumentParser()
+    ap.add_argument("--ticker",required=True)
+    a=ap.parse_args()
+    main(a.ticker)

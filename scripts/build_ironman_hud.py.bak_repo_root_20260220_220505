@@ -3,30 +3,21 @@ from pathlib import Path
 import argparse, json
 import pandas as pd
 
-from pathlib import Path
-REPO_ROOT = Path(__file__).resolve().parents[1]
-
 
 def _load_montecarlo(ticker: str):
+    """Best-effort load of CANON Monte Carlo output."""
     try:
         import json
-        T = ticker.upper()
-        canon = REPO_ROOT / "export" / f"CANON_{T}"
-        fp = canon / f"{T}_MONTECARLO.json"
+        canon = REPO_ROOT / "export" / f"CANON_{ticker.upper()}"
+        fp = canon / f"{ticker.upper()}_MONTECARLO.json"
         if not fp.exists():
             return {}, None
-
-        j = json.loads(fp.read_text())
-        r = j.get("results", j)
-
-        # normalize case
-        for a,b in [("P10","p10"),("P50","p50"),("P90","p90")]:
-            if b not in r and a in r:
-                r[b] = r[a]
-
-        return r, str(fp)
+        j = json.loads(fp.read_text(encoding="utf-8"))
+        r = (j or {}).get("results", {}) if isinstance(j, dict) else {}
+        return r if isinstance(r, dict) else {}, str(fp)
     except Exception:
         return {}, None
+
 # _HUD_HELPERS_BEGIN
 def _pill(unit: str) -> str:
     u = (unit or "").lower().strip()
@@ -151,6 +142,7 @@ def fmt_pct(x):
 
 def main(ticker: str):
     T = ticker.upper()
+    mc_r, mc_path = _load_montecarlo(ticker)
     canon = ROOT / "export" / f"CANON_{T}"
     canon.mkdir(parents=True, exist_ok=True)
 
@@ -174,7 +166,7 @@ def main(ticker: str):
             risk_safe  = _r.get("risk_safety_neg_30d", 0)
             risk_comp  = _r.get("risk_competition_neg_30d", 0)
             risk_total = _r.get("risk_total_30d", risk_labor + risk_reg + risk_ins + risk_safe + risk_comp)
-            risk_shock = _r.get("news_shock", "N/A")
+            risk_shock = _r.get("news_shock_30d", "N/A")
             risk_generated = _r.get("generated_at", "N/A")
     except Exception:
         pass
@@ -339,6 +331,19 @@ def main(ticker: str):
     <div class="card wide">
       <div class="k">DCF cone (per share)</div>
       <div class="row"><div>Bear</div><div><span class="pill">{_fmt_usd(bear_price)}</span> <span class="sub">({ups.get("bear","N/A")}%)</span></div></div>
+
+
+    <div class="card wide">
+      <div class="k">Monte Carlo DCF (per share)</div>
+      <div class="row"><div>P10</div><div><span class="pill">{_fmt_num(mc_r.get("p10"))}</span></div></div>
+      <div class="row"><div>P50</div><div><span class="pill">{_fmt_num(mc_r.get("p50"))}</span></div></div>
+      <div class="row"><div>P90</div><div><span class="pill">{_fmt_num(mc_r.get("p90"))}</span></div></div>
+      <div class="row" style="margin-top:8px;"><div>Prob down ≥20%</div><div>{_fmt_pct((mc_r.get("prob_down_20pct") or 0)*100.0)}</div></div>
+      <div class="row"><div>Prob up ≥20%</div><div>{_fmt_pct((mc_r.get("prob_up_20pct") or 0)*100.0)}</div></div>
+      <div class="small">Source: {mc_path or "N/A"} (triangular assumptions on discount/growth)</div>
+    </div>
+
+
       <div class="row"><div>Base</div><div><span class="pill">{_fmt_usd(base_price)}</span> <span class="sub">({ups.get("base","N/A")}%)</span></div></div>
       <div class="row"><div>Bull</div><div><span class="pill">{_fmt_usd(bull_price)}</span> <span class="sub">({ups.get("bull","N/A")}%)</span></div></div>
       <div class="small">Assumptions: discount {dcf.get("assumptions",{}).get("discount_rate","N/A")}, terminal growth {dcf.get("assumptions",{}).get("terminal_growth","N/A")}</div>
@@ -357,7 +362,7 @@ def main(ticker: str):
     </div>
 
   <div class="small" style="margin-top:14px;">
-    Open next: <a href="decision_dashboard_{T}.html">Dashboard</a> · <a href="news_clickpack_{T}.html">News clickpack</a> · <a href="claim_evidence_{T}.html">Claim evidence</a>
+    Open next: <a href="../../outputs/decision_dashboard_{T}.html">Dashboard</a> · <a href="../../outputs/news_clickpack_{T}.html">News clickpack</a> · <a href="../../outputs/claim_evidence_{T}.html">Claim evidence</a>
   </div>
 </div>
 </body>

@@ -3,30 +3,6 @@ from pathlib import Path
 import argparse, json
 import pandas as pd
 
-from pathlib import Path
-REPO_ROOT = Path(__file__).resolve().parents[1]
-
-
-def _load_montecarlo(ticker: str):
-    try:
-        import json
-        T = ticker.upper()
-        canon = REPO_ROOT / "export" / f"CANON_{T}"
-        fp = canon / f"{T}_MONTECARLO.json"
-        if not fp.exists():
-            return {}, None
-
-        j = json.loads(fp.read_text())
-        r = j.get("results", j)
-
-        # normalize case
-        for a,b in [("P10","p10"),("P50","p50"),("P90","p90")]:
-            if b not in r and a in r:
-                r[b] = r[a]
-
-        return r, str(fp)
-    except Exception:
-        return {}, None
 # _HUD_HELPERS_BEGIN
 def _pill(unit: str) -> str:
     u = (unit or "").lower().strip()

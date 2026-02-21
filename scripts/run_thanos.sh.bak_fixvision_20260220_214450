@@ -71,17 +71,13 @@ echo ""
 
 
 echo "=== X) ULTRA memo (novice / explain-everything) ==="
-# ULTRA requires --thesis. Prefer override if provided, else base thesis.
-BASE_THESIS="theses/${TICKER}_thesis_base.json"
-
-if [ -n "${THESIS_OVERRIDE:-}" ] && [ -f "${THESIS_OVERRIDE}" ]; then
-  python3 scripts/build_ultra_memo.py --ticker "$TICKER" --thesis "${THESIS_OVERRIDE}" || true
-elif [ -f "${BASE_THESIS}" ]; then
-  python3 scripts/build_ultra_memo.py --ticker "$TICKER" --thesis "${BASE_THESIS}" || true
-else
-  echo "⚠️ ULTRA skipped: no thesis file found (need ${BASE_THESIS} or THESIS_OVERRIDE)"
+# Always pass a thesis file (ULTRA requires --thesis)
+ULTRA_THESIS="${THESIS_OVERRIDE:-theses/${TICKER}_thesis_base.json}"
+if [ ! -f "$ULTRA_THESIS" ]; then
+  ULTRA_THESIS="theses/${TICKER}_thesis_base.json"
 fi
+python3 scripts/build_ultra_memo.py --ticker "$TICKER" --thesis "$ULTRA_THESIS" || true
 
-echo ""
-echo "🚀 OPENING ULTRA RESULTS"
-open "export/${TICKER}_ULTRA_Memo.docx" || true
+python3 scripts/build_ultra_memo.py --ticker "$TICKER" --thesis "$ULTRA_THESIS" || true
+
+

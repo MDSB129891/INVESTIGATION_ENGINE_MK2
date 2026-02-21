@@ -2,133 +2,89 @@
 set -euo pipefail
 
 TICKER="${1:-}"
-THESIS_IN="${2:-}"
+THESIS="${2:-}"   # optional: path to thesis json
 
 if [ -z "$TICKER" ]; then
-  echo "usage: ./JARVIS TICKER [thesis_json_path OR plain_english_thesis_text]"
-  echo 'example: ./JARVIS UBER "If drivers become employees, stock will drop significantly"'
+  echo "usage: ./JARVIS TICKER [thesis_json]"
   echo "example: ./JARVIS UBER theses/UBER_thesis_custom.json"
   exit 1
 fi
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-cd "$ROOT"
-
 T="$(printf "%s" "$TICKER" | tr '[:lower:]' '[:upper:]')"
 
-# Decide thesis path
-THESIS_PATH=""
-if [ -n "${THESIS_IN:-}" ]; then
-  if [ -f "$THESIS_IN" ]; then
-    THESIS_PATH="$THESIS_IN"
-  else
-    # Treat arg2 as plain text -> compile
-    THESIS_PATH="theses/${T}_thesis_custom.json"
-    python3 scripts/compile_thesis_from_text.py --ticker "$T" --text "$THESIS_IN" --out "$THESIS_PATH"
-  fi
-else
-  # Default to base thesis if present, otherwise leave empty
-  if [ -f "theses/${T}_thesis_base.json" ]; then
-    THESIS_PATH="theses/${T}_thesis_base.json"
-  fi
+cd "$ROOT"
+
+# venv (if present)
+if [ -f ".venv/bin/activate" ]; then
+  # shellcheck disable=SC1091
+  source ".venv/bin/activate"
 fi
 
-echo ""
-echo "🤖 JARVIS BUILD: $T"
-echo "Thesis: ${THESIS_PATH:-<none>}"
-echo ""
+echo "🧠 VISION MODE: $T"
+echo "ROOT=$ROOT"
+echo "THESIS=${THESIS:-<none>}"
 
-# 0) Engine + memos + dashboard (your standard pipeline)
-# If your run_thanos supports a thesis arg, pass it. If not, it will ignore safely.
-if [ -n "${THESIS_PATH:-}" ]; then
-  bash scripts/run_thanos.sh "$T" "$THESIS_PATH" || bash scripts/run_thanos.sh "$T"
-else
-  bash scripts/run_thanos.sh "$T"
-fi
+# 1) Full engine pack (financials + news + thesis suite + veracity + alerts + memos + dashboard)
+bash scripts/run_thanos.sh "$T" ${THESIS:+"$THESIS"}
 
-# 1) Friday core (market cap / price / cone metrics)
-if [ -f "scripts/friday/build_decision_core.py" ]; then
-  python3 -m py_compile scripts/friday/build_decision_core.py >/dev/null
+# 2) Decision Core + Core Metrics (market cap / price used / bucket score / rating)
+if [ -f scripts/friday/build_decision_core.py ]; then
   python3 scripts/friday/build_decision_core.py --ticker "$T" || true
 fi
-
-if [ -f "scripts/friday/build_core_metrics.py" ]; then
-  python3 -m py_compile scripts/friday/build_core_metrics.py >/dev/null
+if [ -f scripts/friday/build_core_metrics.py ]; then
   python3 scripts/friday/build_core_metrics.py --ticker "$T" || true
 fi
 
-# 2) News risk summary (authoritative risk_* and news_shock_30d)
+# 3) Authoritative news/risk summary -> CANON
 python3 scripts/stormbreaker_news_cleanup.py --ticker "$T" || true
 python3 scripts/build_news_risk_summary.py --ticker "$T" || true
 mkdir -p "export/CANON_${T}"
-[ -f "outputs/news_risk_summary_${T}.json" ] && cp -f "outputs/news_risk_summary_${T}.json" "export/CANON_${T}/news_risk_summary_${T}.json" || true
+cp -f "outputs/news_risk_summary_${T}.json" "export/CANON_${T}/news_risk_summary_${T}.json" 2>/dev/null || true
 
-# 3) Ironman HUD
-if [ -f "scripts/build_ironman_hud.py" ]; then
-  python3 -m py_compile scripts/build_ironman_hud.py >/dev/null
+# 4) Ironman HUD
+if [ -f scripts/build_ironman_hud.py ]; then
   python3 scripts/build_ironman_hud.py --ticker "$T" || true
 fi
 
-# 4) Stormbreaker claim evidence using thesis (if we have one)
-if [ -n "${THESIS_PATH:-}" ] && [ -f "$THESIS_PATH" ]; then
-  bash scripts/stormbreaker_hulkbuster.sh "$T" "$THESIS_PATH" || true
-else
-  # fallback: try base thesis if exists
-  [ -f "theses/${T}_thesis_base.json" ] && bash scripts/stormbreaker_hulkbuster.sh "$T" "theses/${T}_thesis_base.json" || true
-fi
-
-# 5) SUPER+ memo + PDF (story mode)
-# Prefer the exact thesis path when present; fall back to base.
-SUPER_THESIS=""
-if [ -n "${THESIS_PATH:-}" ] && [ -f "$THESIS_PATH" ]; then
-  SUPER_THESIS="$THESIS_PATH"
-elif [ -f "theses/${T}_thesis_base.json" ]; then
-  SUPER_THESIS="theses/${T}_thesis_base.json"
-fi
-
-if [ -n "${SUPER_THESIS:-}" ] && [ -f "scripts/build_super_plus.py" ]; then
-  python3 -m py_compile scripts/build_super_plus.py >/dev/null
-  python3 scripts/build_super_plus.py --ticker "$T" --thesis "$SUPER_THESIS" || true
-
-  # Convert SUPER+ docx to PDF if docx exists
-  SUPER_DOCX="export/${T}_SUPER_PLUS_Memo.docx"
-  if [ -f "$SUPER_DOCX" ]; then
-    if command -v soffice >/dev/null 2>&1; then
-      soffice --headless --convert-to pdf --outdir export "$SUPER_DOCX" >/dev/null 2>&1 || true
-    elif [ -x "/opt/homebrew/bin/soffice" ]; then
-      /opt/homebrew/bin/soffice --headless --convert-to pdf --outdir export "$SUPER_DOCX" >/dev/null 2>&1 || true
-    fi
+# 5) Stormbreaker claim evidence (thesis-driven) if thesis provided
+if [ -n "${THESIS:-}" ] && [ -f "$THESIS" ]; then
+  if [ -f scripts/stormbreaker_hulkbuster.sh ]; then
+    bash scripts/stormbreaker_hulkbuster.sh "$T" "$THESIS" || true
   fi
 fi
 
-# ---------- OPEN OUTPUTS ----------
-dash="$ROOT/outputs/decision_dashboard_${T}.html"
-claims="$ROOT/outputs/claim_evidence_${T}.html"
-news="$ROOT/outputs/news_clickpack_${T}.html"
-pdf="$ROOT/export/${T}_Full_Investment_Memo.pdf"
-ultra="$ROOT/export/${T}_ULTRA_Memo.docx"
-hud="$ROOT/export/CANON_${T}/${T}_IRONMAN_HUD.html"
-superpdf="$ROOT/export/${T}_SUPER_PLUS_Memo.pdf"
+# 6) SUPER+ memo + PDF if thesis provided
+if [ -n "${THESIS:-}" ] && [ -f "$THESIS" ]; then
+  if [ -f scripts/build_super_plus.py ]; then
+    python3 scripts/build_super_plus.py --ticker "$T" --thesis "$THESIS" || true
+  fi
+  SUPER_DOCX="export/${T}_SUPER_PLUS_Memo.docx"
+  if [ -f "$SUPER_DOCX" ] && command -v soffice >/dev/null 2>&1; then
+    soffice --headless --convert-to pdf --outdir export "$SUPER_DOCX" >/dev/null 2>&1 || true
+  fi
+fi
 
 open_if() {
   local f="$1"
   if [ -f "$f" ]; then
     echo "🚀 opening: $f"
-    open "$f" >/dev/null 2>&1 || true
+    open "$f" || true
   else
     echo "⚠️ missing: $f"
   fi
 }
 
-echo ""
-echo "📦 JARVIS OUTPUTS:"
-open_if "$dash"
-open_if "$hud"
-open_if "$claims"
-open_if "$news"
-open_if "$pdf"
-open_if "$superpdf"
-open_if "$ultra"
+HUD="export/CANON_${T}/${T}_IRONMAN_HUD.html"
+SUPERPDF="export/${T}_SUPER_PLUS_Memo.pdf"
+CLAIMS="export/CANON_${T}/claim_evidence_${T}.html"
+NEWS="outputs/news_clickpack_${T}.html"
 
-echo ""
-echo "✅ JARVIS done."
+# IMPORTANT: don't auto-open decision_dashboard to avoid duplicate tabs.
+# HUD links to it.
+open_if "$HUD"
+open_if "$SUPERPDF"
+open_if "$CLAIMS"
+open_if "$NEWS"
+
+echo "✅ VISION finished."

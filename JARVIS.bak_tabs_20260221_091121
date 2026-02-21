@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+TICKER="${1:-}"
+THESIS="${2:-}"   # optional: path to thesis json
+
+if [ -z "$TICKER" ]; then
+  echo "usage: ./JARVIS TICKER [thesis_json]"
+  echo "example: ./JARVIS UBER theses/UBER_thesis_custom.json"
+  exit 1
+fi
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+T="$(printf "%s" "$TICKER" | tr '[:lower:]' '[:upper:]')"
+
+cd "$ROOT"
+
+# venv (if present)
+if [ -f ".venv/bin/activate" ]; then
+  # shellcheck disable=SC1091
+  source ".venv/bin/activate"
+fi
+
+echo "🧠 VISION MODE: $T"
+echo "ROOT=$ROOT"
+echo "THESIS=${THESIS:-<none>}"
+
+# 1) Full engine pack (financials + news + thesis suite + veracity + alerts + memos + dashboard)
+bash scripts/run_thanos.sh "$T" ${THESIS:+"$THESIS"}
+
+# 2) Decision Core + Core Metrics (market cap / price used / bucket score / rating)
+if [ -f scripts/friday/build_decision_core.py ]; then
+  python3 scripts/friday/build_decision_core.py --ticker "$T" || true
+fi
+if [ -f scripts/friday/build_core_metrics.py ]; then
+  python3 scripts/friday/build_core_metrics.py --ticker "$T" || true
+fi
+
+# 3) Authoritative news/risk summary -> CANON
+python3 scripts/stormbreaker_news_cleanup.py --ticker "$T" || true
+python3 scripts/build_news_risk_summary.py --ticker "$T" || true
+mkdir -p "export/CANON_${T}"
+cp -f "outputs/news_risk_summary_${T}.json" "export/CANON_${T}/news_risk_summary_${T}.json" 2>/dev/null || true
+
+# 4) Ironman HUD
+if [ -f scripts/build_ironman_hud.py ]; then
+  python3 scripts/build_ironman_hud.py --ticker "$T" || true
+fi
+
+# 5) Stormbreaker claim evidence (thesis-driven) if thesis provided
+if [ -n "${THESIS:-}" ] && [ -f "$THESIS" ]; then
+  if [ -f scripts/stormbreaker_hulkbuster.sh ]; then
+    bash scripts/stormbreaker_hulkbuster.sh "$T" "$THESIS" || true
+  fi
+fi
+
+# 6) SUPER+ memo + PDF if thesis provided
+if [ -n "${THESIS:-}" ] && [ -f "$THESIS" ]; then
+  if [ -f scripts/build_super_plus.py ]; then
+    python3 scripts/build_super_plus.py --ticker "$T" --thesis "$THESIS" || true
+  fi
+  SUPER_DOCX="export/${T}_SUPER_PLUS_Memo.docx"
+  if [ -f "$SUPER_DOCX" ] && command -v soffice >/dev/null 2>&1; then
+    soffice --headless --convert-to pdf --outdir export "$SUPER_DOCX" >/dev/null 2>&1 || true
+  fi
+fi
+
+open_if() {
+  local f="$1"
+  if [ -f "$f" ]; then
+    echo "🚀 opening: $f"
+    open "$f" || true
+  else
+    echo "⚠️ missing: $f"
+  fi
+}
+
+HUD="export/CANON_${T}/${T}_IRONMAN_HUD.html"
+SUPERPDF="export/${T}_SUPER_PLUS_Memo.pdf"
+CLAIMS="export/CANON_${T}/claim_evidence_${T}.html"
+NEWS="outputs/news_clickpack_${T}.html"
+
+# IMPORTANT: don't auto-open decision_dashboard to avoid duplicate tabs.
+# HUD links to it.
+open_if "$HUD"
+open_if "$SUPERPDF"
+open_if "$CLAIMS"
+open_if "$NEWS"
+
+echo "✅ VISION finished."

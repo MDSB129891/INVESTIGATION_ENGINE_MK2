@@ -85,34 +85,3 @@ fi
 echo ""
 echo "🚀 OPENING ULTRA RESULTS"
 open "export/${TICKER}_ULTRA_Memo.docx" || true
-
-
-echo ""
-echo "=== Y) SUPER+ memo (storytime, funniest + most hand-holding) ==="
-BASE_THESIS="theses/${TICKER}_thesis_base.json"
-
-THESIS_FOR_SUPER=""
-if [ -n "${THESIS_OVERRIDE:-}" ] && [ -f "${THESIS_OVERRIDE}" ]; then
-  THESIS_FOR_SUPER="${THESIS_OVERRIDE}"
-elif [ -f "${BASE_THESIS}" ]; then
-  THESIS_FOR_SUPER="${BASE_THESIS}"
-fi
-
-if [ -n "${THESIS_FOR_SUPER}" ]; then
-  # build SUPER+ (docx)
-  python3 scripts/build_super_plus.py --ticker "$TICKER" --thesis "${THESIS_FOR_SUPER}" || true
-
-  # convert to pdf if soffice exists
-  SUPER_DOCX="export/${TICKER}_SUPER_PLUS_Memo.docx"
-  if [ -f "${SUPER_DOCX}" ]; then
-    if command -v soffice >/dev/null 2>&1; then
-      soffice --headless --convert-to pdf --outdir export "${SUPER_DOCX}" >/dev/null 2>&1 || true
-      echo "✅ SUPER+ PDF attempted: export/${TICKER}_SUPER_PLUS_Memo.pdf"
-    else
-      echo "⚠️ soffice not found; SUPER+ PDF skipped"
-    fi
-  fi
-else
-  echo "⚠️ SUPER+ skipped: no thesis file found (need ${BASE_THESIS} or THESIS_OVERRIDE)"
-fi
-

@@ -97,6 +97,46 @@ def _aha_rows(signals: dict) -> list[dict]:
     ]
 
 
+def _field_manual_rows() -> list[dict]:
+    return [
+        {
+            "metric": "Sales Growth (YoY)",
+            "plain": "Revenue growth versus last year.",
+            "why": "Measures demand acceleration.",
+            "read": "Strong growth is best when cash quality is also healthy.",
+            "next": "If weak, ask whether the slowdown is temporary or structural.",
+        },
+        {
+            "metric": "FCF Margin",
+            "plain": "Cash generated after operating costs and reinvestment.",
+            "why": "Separates real business strength from accounting noise.",
+            "read": "Higher and steady margins suggest a durable operating model.",
+            "next": "If weak, inspect capex burden and margin trend direction.",
+        },
+        {
+            "metric": "News Shock (30d)",
+            "plain": "Weighted signal from recent headlines.",
+            "why": "Sentiment and risk headlines can drive near-term repricing.",
+            "read": "More negative values usually mean narrative headwinds.",
+            "next": "If weak, verify headline type and persistence in News Sources.",
+        },
+        {
+            "metric": "Risk Total (30d)",
+            "plain": "Number of negative, risk-tagged events in the last month.",
+            "why": "Risk clusters often show stress before fundamentals deteriorate.",
+            "read": "Higher counts imply higher execution and regulatory uncertainty.",
+            "next": "If elevated, lower position size and require cleaner follow-through.",
+        },
+        {
+            "metric": "Net Debt / FCF",
+            "plain": "Debt load compared with annual free cash flow.",
+            "why": "High leverage increases vulnerability during slowdowns.",
+            "read": "Lower ratios are safer and preserve strategic flexibility.",
+            "next": "If high, review debt schedule and refinancing exposure.",
+        },
+    ]
+
+
 def main(ticker: str):
     t = ticker.upper()
     out = ROOT / "outputs"
@@ -119,6 +159,16 @@ def main(ticker: str):
         f"<td>{r['meaning']}</td>"
         "</tr>"
         for r in aha
+    )
+    manual_html = "".join(
+        "<tr>"
+        f"<td>{r['metric']}</td>"
+        f"<td>{r['plain']}</td>"
+        f"<td>{r['why']}</td>"
+        f"<td>{r['read']}</td>"
+        f"<td>{r['next']}</td>"
+        "</tr>"
+        for r in _field_manual_rows()
     )
     links = [
         ("HUD", f"../export/CANON_{t}/{t}_IRONMAN_HUD.html"),
@@ -154,6 +204,11 @@ th{{color:#9db0ce;font-size:12px;text-transform:uppercase}}
 <div class='card'><h3>Street-Simple</h3><div>{public}</div></div>
 <div class='card'><h3>Desk-Deep</h3><div>{pro}</div></div>
 <div class='card'><h3>Open Modules</h3><ul>{rows}</ul></div>
+<div class='card'><h3>Armor Field Manual (Deep Explanation)</h3>
+<div>Use this to translate each metric into a decision action. If a value is "—", that signal was missing this run.</div>
+<table><thead><tr><th>Metric</th><th>Plain English</th><th>Why It Matters</th><th>How To Read It</th><th>Next Question</th></tr></thead>
+<tbody>{manual_html}</tbody></table>
+</div>
 <div class='card'><h3>Aha Mode: Apples-to-Apples Scoreboard</h3>
 <div>Same thresholds every run, so users without finance background can still compare setup quality.</div>
 <table><thead><tr><th>Metric</th><th>Your Number</th><th>Zone</th><th>Rule</th><th>What It Means</th></tr></thead>

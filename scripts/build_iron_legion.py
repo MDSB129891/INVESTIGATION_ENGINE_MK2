@@ -158,6 +158,46 @@ def _aha_rows(signals: Dict) -> List[Dict[str, str]]:
     return rows
 
 
+def _field_manual_rows() -> List[Dict[str, str]]:
+    return [
+        {
+            "metric": "Sales Growth (YoY)",
+            "plain": "How fast revenue is growing versus last year.",
+            "why": "Growth shows whether demand is expanding or stalling.",
+            "read": "High growth with stable cash quality is stronger than growth alone.",
+            "next": "If weak, ask whether this is a temporary cycle or a structural slowdown.",
+        },
+        {
+            "metric": "FCF Margin",
+            "plain": "How much true cash is produced per dollar of revenue.",
+            "why": "Cash funds hiring, R&D, debt paydown, and buybacks without new financing.",
+            "read": "High and stable is strong; deeply negative means the model is not self-funding.",
+            "next": "If weak, check capex intensity and whether margins are improving quarter to quarter.",
+        },
+        {
+            "metric": "News Shock (30d)",
+            "plain": "Net tone of recent headlines after risk weighting.",
+            "why": "Narrative pressure often drives short-term repricing and volatility.",
+            "read": "Large negative values mean headline drag; positive values suggest narrative support.",
+            "next": "If weak, open News Sources and confirm whether risks are one-off or recurring.",
+        },
+        {
+            "metric": "Risk Total (30d)",
+            "plain": "Count of negative labor, regulatory, insurance, and similar risk tags.",
+            "why": "Clustered risks can break a thesis even when fundamentals look acceptable.",
+            "read": "Higher count means more operational friction and execution uncertainty.",
+            "next": "If elevated, tighten sizing and wait for risk count to normalize.",
+        },
+        {
+            "metric": "Net Debt / FCF",
+            "plain": "Debt burden measured against annual cash generation.",
+            "why": "Leverage risk increases when debt grows faster than the cash that services it.",
+            "read": "Lower is safer; very high values reduce flexibility in downturns.",
+            "next": "If high, inspect maturity schedule and refinancing exposure before deploying.",
+        },
+    ]
+
+
 def _load_ticker_payload(ticker: str) -> Dict:
     t = ticker.upper()
     ds = _read_json(OUT / f"decision_summary_{t}.json", {}) or {}
@@ -374,6 +414,16 @@ def _render_html(data: Dict) -> str:
         "</tr>"
         for r in aha
     )
+    manual_html = "".join(
+        "<tr>"
+        f"<td>{r['metric']}</td>"
+        f"<td>{r['plain']}</td>"
+        f"<td>{r['why']}</td>"
+        f"<td>{r['read']}</td>"
+        f"<td>{r['next']}</td>"
+        "</tr>"
+        for r in _field_manual_rows()
+    )
     focus_price = _fmt_money(focus.get("price_text")) if focus.get("price_text") != "—" else "—"
     governor_banner = ""
     if focus.get("governor_override"):
@@ -434,6 +484,14 @@ th{{color:#9db0ce;font-size:12px;text-transform:uppercase}}
 <div><b>Reliability</b> tells how trustworthy the inputs are in this run.</div>
 <div><b>Max position</b> is a risk cap, not a required allocation.</div>
 <div><b>HOLD FIRE</b> means wait; <b>TRACK</b> means monitor; <b>DEPLOY</b> means candidate buy setup.</div>
+</div>
+<div class="card"><div class="k">Armor Field Manual (Deep Explanation)</div>
+<div style="margin:6px 0 8px 0;color:#b8c8e6;">
+Read this table like a translator: each metric maps raw numbers to business reality and a clear next question.
+If a value appears as "—", that input was unavailable this run and reliability is reduced.
+</div>
+<table><thead><tr><th>Metric</th><th>Plain English</th><th>Why It Matters</th><th>How To Read It</th><th>Next Question</th></tr></thead>
+<tbody>{manual_html}</tbody></table>
 </div>
 <div class="card"><div class="k">Aha Mode: Apples-to-Apples Scoreboard</div>
 <div style="margin:6px 0 8px 0;color:#b8c8e6;">Same rules every ticker, so non-finance users can compare quickly.</div>

@@ -102,6 +102,46 @@ def _aha_rows(signals: dict) -> list[dict]:
     ]
 
 
+def _field_manual_rows() -> list[dict]:
+    return [
+        {
+            "metric": "Sales Growth (YoY)",
+            "plain": "Revenue growth versus the same period last year.",
+            "why": "Shows whether customer demand is expanding or slowing.",
+            "read": "High growth is strongest when paired with stable cash margins.",
+            "next": "If weak, verify whether slowdown is cyclical or structural.",
+        },
+        {
+            "metric": "FCF Margin",
+            "plain": "Percent of revenue converted into free cash flow.",
+            "why": "Cash generation supports reinvestment and reduces financing risk.",
+            "read": "Sustained positive margins are healthier than one-off spikes.",
+            "next": "If weak, inspect capex and working-capital pressure.",
+        },
+        {
+            "metric": "News Shock (30d)",
+            "plain": "Recent headline tone balance, adjusted for risk-sensitive language.",
+            "why": "Headline pressure can move price before accounting statements catch up.",
+            "read": "Negative values imply narrative drag and possible volatility.",
+            "next": "If weak, check the News Sources tab to identify recurring themes.",
+        },
+        {
+            "metric": "Risk Total (30d)",
+            "plain": "Count of tagged negative headlines tied to core risk categories.",
+            "why": "Rising risk clusters can invalidate otherwise good-looking setups.",
+            "read": "Higher values mean more operating or regulatory friction.",
+            "next": "If elevated, use smaller sizing and require cleaner follow-through.",
+        },
+        {
+            "metric": "Net Debt / FCF",
+            "plain": "Debt burden relative to annual cash generation.",
+            "why": "Higher leverage reduces flexibility when growth slows.",
+            "read": "Lower ratios are safer; high ratios increase downside sensitivity.",
+            "next": "If high, review debt maturities and refinancing dependency.",
+        },
+    ]
+
+
 def _build_html(payload: dict) -> str:
     ticker = payload["focus_ticker"]
     trust_pass = bool(payload.get("trust_pass"))
@@ -118,6 +158,16 @@ def _build_html(payload: dict) -> str:
         f"<td>{r['meaning']}</td>"
         "</tr>"
         for r in payload.get("aha_mode_rows", [])
+    )
+    manual_html = "".join(
+        "<tr>"
+        f"<td>{r['metric']}</td>"
+        f"<td>{r['plain']}</td>"
+        f"<td>{r['why']}</td>"
+        f"<td>{r['read']}</td>"
+        f"<td>{r['next']}</td>"
+        "</tr>"
+        for r in _field_manual_rows()
     )
     return f"""<!doctype html>
 <html><head><meta charset="utf-8"><title>Mission Report — {ticker}</title>
@@ -144,6 +194,11 @@ th{{color:#9db0ce;font-size:12px;text-transform:uppercase}}
 <div><b>Action = DEPLOY:</b> model sees a favorable setup, still use position limits.</div>
 <div><b>Action = TRACK:</b> setup is mixed; wait for confirmation and monitor triggers.</div>
 <div><b>Action = HOLD FIRE:</b> too many weak signals or evidence gaps right now.</div>
+</div>
+<div class="card"><h3>Armor Field Manual (Deep Explanation)</h3>
+<div>Use this as the translation layer from metric to decision. If a value is "—", that signal was missing this run.</div>
+<table><thead><tr><th>Metric</th><th>Plain English</th><th>Why It Matters</th><th>How To Read It</th><th>Next Question</th></tr></thead>
+<tbody>{manual_html}</tbody></table>
 </div>
 <div class="card"><h3>Aha Mode: Apples-to-Apples Scoreboard</h3>
 <div>Same thresholds every run so anyone can compare tickers quickly.</div>
@@ -247,6 +302,12 @@ def main(tickers: str):
             ]
             for r in payload.get("aha_mode_rows", []):
                 lines.append(f"- {r['metric']}: {r['value']} | {r['zone']} | {r['rule']}")
+            lines += [
+                "",
+                "Armor Field Manual:",
+            ]
+            for r in _field_manual_rows():
+                lines.append(f"- {r['metric']}: {r['plain']} Why: {r['why']}")
             for line in lines:
                 c.drawString(40, y, str(line)[:120])
                 y -= 16

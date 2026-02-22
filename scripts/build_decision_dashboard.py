@@ -51,7 +51,8 @@ def build_dashboard(ticker: str) -> Path:
         ("Full memo (PDF)", f"export/{ticker}_Full_Investment_Memo.pdf"),
         ("Full memo (DOCX)", f"export/{ticker}_Full_Investment_Memo.docx"),
         ("One-page dashboard (this file)", f"outputs/decision_dashboard_{ticker}.html"),
-        ("Clickpack (news links)", f"outputs/news_clickpack_{ticker}.html"),
+        ("News Sources tab", f"export/CANON_{ticker}/{ticker}_NEWS_SOURCES.html"),
+        ("News evidence (raw links)", f"outputs/news_evidence_{ticker}.html"),
         ("Claim evidence (thesis stress test)", f"outputs/claim_evidence_{ticker}.html"),
         ("Veracity / confidence JSON", f"outputs/veracity_{ticker}.json"),
         ("Alerts (red lines)", f"outputs/alerts_{ticker}.json"),
@@ -120,7 +121,8 @@ def build_dashboard(ticker: str) -> Path:
              "<ol>",
              f"<li><b>Full memo PDF</b> — <code>export/{ticker}_Full_Investment_Memo.pdf</code></li>",
              f"<li><b>Claim evidence</b> — <code>outputs/claim_evidence_{ticker}.html</code></li>",
-             f"<li><b>Clickpack</b> — <code>outputs/news_clickpack_{ticker}.html</code></li>",
+             f"<li><b>News Sources</b> — <code>export/CANON_{ticker}/{ticker}_NEWS_SOURCES.html</code></li>",
+             f"<li><b>News evidence</b> — <code>outputs/news_evidence_{ticker}.html</code></li>",
              "</ol>",
              "</div>"]
 
@@ -131,7 +133,7 @@ def build_dashboard(ticker: str) -> Path:
     html += ["<div class='card'>", "<h2>3) Plain-English cheat sheet</h2>",
              "<ul>",
              "<li><b>Score</b>: 0–100 summary signal from cash/growth/valuation/quality/risk buckets.</li>",
-             "<li><b>Clickpack</b>: raw headlines with URLs so you can verify the model isn’t hallucinating.</li>",
+             "<li><b>News Sources</b>: provider checks + source counts + direct links for verification.</li>",
              "<li><b>Claim evidence</b>: maps each thesis claim to supporting/contradicting headlines.</li>",
              "<li><b>Veracity</b>: checks if evidence is diverse and from higher-trust domains.</li>",
              "</ul>",

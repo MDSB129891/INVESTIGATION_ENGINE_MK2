@@ -140,7 +140,7 @@ def main(ticker: str, mode: str):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--ticker", default="UBER")
+    ap.add_argument("--ticker", default="AAPL")
     ap.add_argument("--mode", default="hybrid")
     args = ap.parse_args()
     main(args.ticker, args.mode)

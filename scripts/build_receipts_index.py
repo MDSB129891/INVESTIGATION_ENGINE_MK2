@@ -371,7 +371,8 @@ def main(ticker: str):
   <div class="card">
     <div class="small"><b>Next</b>: <a href="../CANON_{T}/{T}_IRONMAN_HUD.html">IRONMAN HUD</a> ·
       <a href="../CANON_{T}/{T}_TIMESTONE.html">Time Stone</a> ·
-      <a href="../../outputs/news_clickpack_{T}.html">News clickpack</a> ·
+      <a href="../CANON_{T}/{T}_NEWS_SOURCES.html">News sources</a> ·
+      <a href="../../outputs/news_evidence_{T}.html">News evidence</a> ·
       <a href="../../outputs/claim_evidence_{T}.html">Claim evidence</a>
     </div>
   </div>

@@ -18,7 +18,7 @@ def main():
     outputs = ROOT / "outputs"
     processed = ROOT / "data" / "processed"
 
-    ticker = os.getenv("TICKER", "UBER").upper()
+    ticker = os.getenv("TICKER", "AAPL").upper()
 
     summary = enrich_decision_summary(
         root=ROOT,

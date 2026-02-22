@@ -100,6 +100,6 @@ The engine also writes `veracity_{t}.json`. This is the machine-readable view of
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--ticker", default="UBER")
+    ap.add_argument("--ticker", default="AAPL")
     args = ap.parse_args()
     main(args.ticker)

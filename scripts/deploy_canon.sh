@@ -10,7 +10,7 @@ if [ -z "${TICKER}" ]; then
   echo "  ./scripts/deploy_canon.sh TICKER [thesis.json] [open|nuke]"
   echo ""
   echo "Examples:"
-  echo "  ./scripts/deploy_canon.sh UBER"
+  echo "  ./scripts/deploy_canon.sh AAPL"
   echo "  ./scripts/deploy_canon.sh GM theses/GM_custom.json nuke"
   exit 1
 fi

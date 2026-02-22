@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import json
 import os
-import requests
 from typing import List, Optional
 from datetime import datetime, timedelta, timezone
 
 from ..schema import NewsItem
 from ..utils import parse_iso_datetime
+from analytics.provider_net import request_with_resilience
 
 
 SEC_TICKER_CIK_URL = "https://www.sec.gov/files/company_tickers.json"
@@ -18,8 +18,7 @@ DEFAULT_UA = "investment_decision_engine (research) contact: melbello1205@gmail.
 
 
 def _sec_get(url: str, ua: str) -> dict:
-    r = requests.get(url, headers={"User-Agent": ua}, timeout=30)
-    r.raise_for_status()
+    r = request_with_resilience("sec", url, headers={"User-Agent": ua})
     return r.json()
 
 

@@ -116,6 +116,6 @@ ul {{ margin: 8px 0 0 18px; }}
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--ticker", default="UBER")
+    ap.add_argument("--ticker", default="AAPL")
     args = ap.parse_args()
     main(args.ticker)

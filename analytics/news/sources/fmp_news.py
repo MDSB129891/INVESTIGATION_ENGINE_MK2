@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import os
-import requests
 from typing import List
 from datetime import datetime, timedelta, timezone
 
 from ..schema import NewsItem
 from ..utils import parse_iso_datetime
+from analytics.provider_net import request_with_resilience
 
 
 def fetch_fmp_stock_news(
@@ -36,8 +36,7 @@ def fetch_fmp_stock_news(
 
     for url, params in candidates:
         try:
-            r = requests.get(url, params=params, timeout=30)
-            r.raise_for_status()
+            r = request_with_resilience("fmp", url, params=params)
             data = r.json()
             if not isinstance(data, list):
                 continue

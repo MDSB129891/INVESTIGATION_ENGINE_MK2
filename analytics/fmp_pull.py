@@ -1,7 +1,7 @@
 import os
-import requests
 import pandas as pd
 from dotenv import load_dotenv
+from analytics.provider_net import request_with_resilience
 
 load_dotenv()
 
@@ -17,8 +17,7 @@ def _key() -> str:
 
 def _get(endpoint: str, params: dict) -> list:
     url = f"{BASE}/{endpoint}"
-    r = requests.get(url, params=params, timeout=30)
-    r.raise_for_status()
+    r = request_with_resilience("fmp", url, params=params)
     data = r.json()
     if not isinstance(data, list):
         raise RuntimeError(f"Unexpected response type from FMP: {type(data)} => {data}")

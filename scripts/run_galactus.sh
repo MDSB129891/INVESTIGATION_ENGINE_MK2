@@ -27,7 +27,7 @@ TICKER_UC="$(printf "%s" "${TICKER}" | tr '[:lower:]' '[:upper:]')"
 # IMPORTANT: these are literals, not variables like $DASH
 if [[ -z "${PEERS_CSV}" ]]; then
   case "${TICKER_UC}" in
-    UBER|LYFT|DASH)
+    LYFT|DASH)
       PEERS_CSV="LYFT,DASH"
       ;;
     TSLA)
@@ -178,4 +178,3 @@ fi
 if [ -f "export/${TICKER}_Full_Investment_Memo.pdf" ]; then
   open "export/${TICKER}_Full_Investment_Memo.pdf" || true
 fi
-

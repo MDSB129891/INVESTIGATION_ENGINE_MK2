@@ -33,7 +33,7 @@ DATA_PROCESSED = ROOT / "data" / "processed"
 OUTPUTS = ROOT / "outputs"
 EXPORT = ROOT / "export"
 
-TICKER = os.getenv("TICKER", "UBER").upper()
+TICKER = os.getenv("TICKER", "AAPL").upper()
 
 
 def _utc_now() -> str:
@@ -460,7 +460,7 @@ def write_word_report(path: Path, summary: dict, card: dict, curated: pd.DataFra
     _bullet(doc, "5) Use Metric Cheat Sheet to label numbers good/ok/bad.", 1)
 
     _bullet(doc, "30 minutes:", 0)
-    _bullet(doc, "6) Compare UBER vs LYFT vs DASH in Excel.", 1)
+    _bullet(doc, f"6) Compare {TICKER} versus its closest peers in Excel.", 1)
     _bullet(doc, "7) Check scenario ranges (bear/base/bull).", 1)
 
     doc.add_heading("How the engine arrives at the score", level=1)

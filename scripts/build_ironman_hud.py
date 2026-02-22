@@ -570,11 +570,19 @@ def main(ticker: str):
     mc_up20 = mc_r.get("prob_up_20pct") if isinstance(mc_r, dict) else None
     mc_fallback_used = bool(mc_r.get("fallback_used")) if isinstance(mc_r, dict) else False
     mc_fallback_reason = mc_r.get("fallback_reason") if isinstance(mc_r, dict) else None
+    mc_conf_grade = str(mc_r.get("confidence_grade") or ("LOW" if mc_fallback_used else "HIGH")).upper()
+    mc_conf_reason = str(mc_r.get("confidence_reason") or ("Synthetic cone used due to missing valuation cone." if mc_fallback_used else "Simulation used full valuation cone inputs."))
+    mc_conf_tone = (
+        '<span class="tone good">High confidence</span>' if mc_conf_grade == "HIGH"
+        else ('<span class="tone ok">Medium confidence</span>' if mc_conf_grade == "MEDIUM" else '<span class="tone bad">Low confidence</span>')
+    )
 
     # Build next links dynamically so users don't click dead tabs.
     links = []
     next_candidates = [
         (f"{T}_TIMESTONE.html", canon / f"{T}_TIMESTONE.html", "Time Stone"),
+        (f"{T}_NEWS_SOURCES.html", canon / f"{T}_NEWS_SOURCES.html", "News Sources"),
+        (f"{T}_STORMBREAKER.html", canon / f"{T}_STORMBREAKER.html", "Stormbreaker"),
         (f"{T}_ARMOR_SYSTEMS.html", canon / f"{T}_ARMOR_SYSTEMS.html", "Armor systems"),
         (f"../../outputs/iron_legion_command_{T}.html", ROOT / "outputs" / f"iron_legion_command_{T}.html", "Iron Legion command"),
         (f"../../outputs/receipts_{T}.html", ROOT / "outputs" / f"receipts_{T}.html", "Receipts"),
@@ -592,6 +600,22 @@ def main(ticker: str):
     # --- Provider provenance (per-metric source audit) ---
     metric_provider_payload = _load_json(ROOT / "outputs" / f"metric_provider_used_{T}.json", {}) or {}
     metric_provider_used = metric_provider_payload.get("metric_provider_used", {}) if isinstance(metric_provider_payload, dict) else {}
+
+    def _provider_metric_value(metric_key):
+        item = metric_provider_used.get(metric_key, {}) if isinstance(metric_provider_used, dict) else {}
+        return item.get("value") if isinstance(item, dict) else None
+
+    # Fallback fills for core snapshot so HUD does not lose key values when one artifact is sparse.
+    if price is None:
+        price = _provider_metric_value("price")
+    if mcap is None:
+        mcap = _provider_metric_value("market_cap")
+    if rev_yoy is None:
+        rev_yoy = _provider_metric_value("revenue_ttm_yoy_pct")
+    if fcf_ttm_display is None:
+        fcf_ttm_display = _provider_metric_value("fcf_ttm")
+    if fcf_m is None:
+        fcf_m = _provider_metric_value("fcf_margin_ttm_pct")
 
     def _provider_badge(p):
         ps = str(p or "unknown")
@@ -629,6 +653,35 @@ def main(ticker: str):
         "<tr><td colspan='3' style='opacity:.75;'>No provider provenance file found yet.</td></tr>"
     )
 
+    # --- Company Intel (free multi-source profile aggregator) ---
+    ci = _load_json(ROOT / "outputs" / f"company_intel_{T}.json", {}) or {}
+    ci_company = ci.get("company", {}) if isinstance(ci, dict) else {}
+    ci_market = ci.get("market", {}) if isinstance(ci, dict) else {}
+    ci_x = ci.get("crosscheck", {}) if isinstance(ci, dict) else {}
+    ci_grade = str(ci.get("confidence_grade") or "UNKNOWN").upper()
+    ci_cov = ci.get("coverage_fields_present")
+    ci_tone = (
+        '<span class="tone good">High</span>' if ci_grade == "HIGH"
+        else ('<span class="tone ok">Medium</span>' if ci_grade == "MEDIUM" else '<span class="tone bad">Low</span>')
+    )
+    ci_name = ci_company.get("name") or T
+    ci_sector = ci_company.get("sector") or "—"
+    ci_industry = ci_company.get("industry") or "—"
+    ci_country = ci_company.get("country") or "—"
+    ci_exchange = ci_company.get("exchange") or "—"
+    ci_cik = ci_company.get("sec_cik") or "—"
+    ci_website = ci_company.get("website") or "—"
+    ci_desc = (ci_company.get("description") or "No description available.").strip()
+    ci_desc = (ci_desc[:280] + "...") if len(ci_desc) > 280 else ci_desc
+    ci_price = _fmt_usd(ci_market.get("price"))
+    ci_mcap = _fmt_usd(ci_market.get("market_cap"))
+    ci_pvar = _fmt_pct(ci_x.get("price_variance_pct_fmp_vs_massive")) if ci_x.get("price_variance_pct_fmp_vs_massive") is not None else "—"
+    ci_mvar = _fmt_pct(ci_x.get("market_cap_variance_pct")) if ci_x.get("market_cap_variance_pct") is not None else "—"
+    snap_period_end = row.get("period_end") or "—"
+    snap_revenue_ttm = row.get("revenue_ttm")
+    snap_cash = row.get("cash")
+    snap_debt = row.get("debt")
+
     # --- Stormbreaker claim evidence snapshot ---
     stormbreaker = _load_json(ROOT / "outputs" / f"claim_evidence_{T}.json", {}) or {}
     sb_results = stormbreaker.get("results", []) if isinstance(stormbreaker, dict) else []
@@ -640,6 +693,180 @@ def main(ticker: str):
         else ('<span class="tone ok">Incomplete evidence</span>' if sb_unknown > 0
               else '<span class="tone good">Thesis checks passing</span>')
     )
+
+    # --- News source health snapshot ---
+    news_sources_payload = _load_json(ROOT / "outputs" / f"news_sources_{T}.json", {}) or {}
+    news_sources_enabled = news_sources_payload.get("enabled_sources") if isinstance(news_sources_payload, dict) else []
+    if not isinstance(news_sources_enabled, list):
+        news_sources_enabled = []
+    news_sources_enabled_s = ", ".join(str(x).upper() for x in news_sources_enabled) if news_sources_enabled else "—"
+    news_source_counts = news_sources_payload.get("source_counts_30d", {}) if isinstance(news_sources_payload, dict) else {}
+    if not isinstance(news_source_counts, dict):
+        news_source_counts = {}
+    news_source_mix = ", ".join(
+        f"{str(k).lower()}:{_fmt_num(v)}"
+        for k, v in sorted(news_source_counts.items(), key=lambda kv: (-float(kv[1] or 0), str(kv[0])))
+    ) if news_source_counts else "—"
+    news_checks_passed = news_sources_payload.get("checks_passed") if isinstance(news_sources_payload, dict) else None
+    news_checks_total = news_sources_payload.get("checks_total_enabled") if isinstance(news_sources_payload, dict) else None
+    news_evidence_rows = news_sources_payload.get("evidence_rows_30d") if isinstance(news_sources_payload, dict) else None
+    news_trust_grade = str(news_sources_payload.get("trust_grade") or "UNKNOWN").upper() if isinstance(news_sources_payload, dict) else "UNKNOWN"
+    news_trust_tone = (
+        '<span class="tone good">High</span>' if news_trust_grade == "HIGH"
+        else ('<span class="tone ok">Medium</span>' if news_trust_grade == "MEDIUM" else '<span class="tone bad">Low</span>')
+    )
+    news_tab_path = canon / f"{T}_NEWS_SOURCES.html"
+    news_tab_link = (
+        f'<a href="{T}_NEWS_SOURCES.html">Open News Sources tab</a>'
+        if news_tab_path.exists()
+        else f'<a href="../../outputs/news_evidence_{T}.html">Open raw news evidence</a>'
+    )
+
+    # --- Closest competitors snapshot (peer universe first, then market-cap proximity fallback) ---
+    decision_summary = _load_json(ROOT / "outputs" / f"decision_summary_{T}.json", {}) or {}
+    competitors_context = (
+        "Competitor view unavailable right now. Run with peers (example: --peers MSFT,AMZN) to compare side-by-side."
+    )
+    competitors_rows_html = "<tr><td colspan='9' style='opacity:.75;'>No competitor rows available.</td></tr>"
+    try:
+        comps_all = pd.read_csv(ROOT / "data" / "processed" / "comps_snapshot.csv")
+    except Exception:
+        comps_all = pd.DataFrame()
+
+    if not comps_all.empty and "ticker" in comps_all.columns:
+        comps_all = comps_all.copy()
+        comps_all["ticker"] = comps_all["ticker"].astype(str).str.upper()
+        focus_comp = comps_all[comps_all["ticker"] == T]
+        focus_comp_row = focus_comp.iloc[0].to_dict() if not focus_comp.empty else {}
+
+        def _sf(v):
+            try:
+                return float(v)
+            except Exception:
+                return None
+
+        # Risk totals from risk dashboard (TOTAL row)
+        risk_total_map = {}
+        try:
+            risk_df = pd.read_csv(ROOT / "data" / "processed" / "news_risk_dashboard.csv")
+            if not risk_df.empty and "ticker" in risk_df.columns:
+                risk_df = risk_df.copy()
+                risk_df["ticker"] = risk_df["ticker"].astype(str).str.upper()
+                if "risk_tag" in risk_df.columns and "neg_count_30d" in risk_df.columns:
+                    rr = risk_df[risk_df["risk_tag"].astype(str).str.upper() == "TOTAL"]
+                    for _, rv in rr.iterrows():
+                        risk_total_map[str(rv.get("ticker", "")).upper()] = _sf(rv.get("neg_count_30d"))
+                elif "risk_total_30d" in risk_df.columns:
+                    for _, rv in risk_df.iterrows():
+                        risk_total_map[str(rv.get("ticker", "")).upper()] = _sf(rv.get("risk_total_30d"))
+        except Exception:
+            pass
+
+        # 1) Use explicit run universe peers if present.
+        ds_universe = decision_summary.get("universe", []) if isinstance(decision_summary, dict) else []
+        if not isinstance(ds_universe, list):
+            ds_universe = []
+        peer_candidates = []
+        for u in ds_universe:
+            tu = str(u).upper().strip()
+            if tu and tu != T and (comps_all["ticker"] == tu).any():
+                peer_candidates.append(tu)
+        method = "from your selected peers (run universe)"
+
+        # 2) Fallback: closest by market-cap distance.
+        if not peer_candidates:
+            others = comps_all[comps_all["ticker"] != T].copy()
+            if not others.empty:
+                focus_mcap = _sf(focus_comp_row.get("market_cap"))
+                if focus_mcap is not None and focus_mcap > 0:
+                    others["_dist"] = (
+                        (pd.to_numeric(others["market_cap"], errors="coerce") - focus_mcap).abs()
+                        / max(abs(focus_mcap), 1.0)
+                    )
+                else:
+                    others["_dist"] = pd.to_numeric(others["market_cap"], errors="coerce").isna().astype(float)
+                others = others.sort_values(["_dist", "ticker"], ascending=[True, True])
+                peer_candidates = others["ticker"].astype(str).tolist()
+                method = "closest by market-cap distance"
+
+        peer_rows = []
+        focus_growth = _sf(focus_comp_row.get("revenue_ttm_yoy_pct"))
+        focus_fcf_margin = _sf(focus_comp_row.get("fcf_margin_ttm_pct"))
+        focus_risk_total = _sf(risk_total_map.get(T))
+        for pt in peer_candidates[:4]:
+            pr_df = comps_all[comps_all["ticker"] == pt]
+            if pr_df.empty:
+                continue
+            pr = pr_df.iloc[0].to_dict()
+            p_price = _sf(pr.get("price"))
+            p_mcap = _sf(pr.get("market_cap"))
+            p_growth = _sf(pr.get("revenue_ttm_yoy_pct"))
+            p_fcf_margin = _sf(pr.get("fcf_margin_ttm_pct"))
+            p_fcf_yield = _sf(pr.get("fcf_yield"))
+            p_nd_fcf = _sf(pr.get("net_debt_to_fcf_ttm"))
+            p_risk_total = _sf(risk_total_map.get(pt))
+
+            compare_notes = []
+            if focus_growth is not None and p_growth is not None:
+                if p_growth >= focus_growth + 2:
+                    compare_notes.append(f"faster growth than {T}")
+                elif p_growth <= focus_growth - 2:
+                    compare_notes.append(f"slower growth than {T}")
+            if focus_fcf_margin is not None and p_fcf_margin is not None:
+                if p_fcf_margin >= focus_fcf_margin + 2:
+                    compare_notes.append(f"stronger cash margin than {T}")
+                elif p_fcf_margin <= focus_fcf_margin - 2:
+                    compare_notes.append(f"weaker cash margin than {T}")
+            if focus_risk_total is not None and p_risk_total is not None:
+                if p_risk_total >= focus_risk_total + 2:
+                    compare_notes.append(f"higher headline risk than {T}")
+                elif p_risk_total <= focus_risk_total - 2:
+                    compare_notes.append(f"lower headline risk than {T}")
+
+            issues = []
+            if p_growth is not None and p_growth < 0:
+                issues.append("shrinking sales")
+            if p_fcf_margin is not None and p_fcf_margin < 5:
+                issues.append("thin cash margin")
+            if p_fcf_yield is not None and (p_fcf_yield * 100.0) < 4:
+                issues.append("low cash yield")
+            if p_nd_fcf is not None and p_nd_fcf > 4:
+                issues.append("heavy debt load")
+            if p_risk_total is not None and p_risk_total > 5:
+                issues.append("elevated headline risk")
+
+            quick_parts = []
+            if compare_notes:
+                quick_parts.append("Relative: " + ", ".join(compare_notes[:2]))
+            if issues:
+                quick_parts.append("Flags: " + ", ".join(issues[:3]))
+            if not quick_parts:
+                quick_parts.append("Quick scan: no major stress flags vs current thresholds.")
+            quick_read = ". ".join(quick_parts) + "."
+
+            peer_rows.append(
+                "<tr>"
+                f"<td><b>{htmlmod.escape(pt)}</b></td>"
+                f"<td>{_fmt_usd(p_price)}</td>"
+                f"<td>{_fmt_usd(p_mcap)}</td>"
+                f"<td>{_fmt_pct(p_growth)}</td>"
+                f"<td>{_fmt_pct(p_fcf_margin)}</td>"
+                f"<td>{_fmt_pct((p_fcf_yield * 100.0) if p_fcf_yield is not None else None)}</td>"
+                f"<td>{_fmt_x(p_nd_fcf)}</td>"
+                f"<td>{_fmt_num(p_risk_total) if p_risk_total is not None else '—'}</td>"
+                f"<td>{htmlmod.escape(quick_read)}</td>"
+                "</tr>"
+            )
+
+        if peer_rows:
+            competitors_rows_html = "".join(peer_rows)
+            competitors_context = (
+                f"Peers chosen {method}. This is a quick side-by-side read to show if {T} looks stronger or weaker than nearby alternatives."
+            )
+        else:
+            competitors_context = (
+                "No peers were available in `comps_snapshot.csv` for this run. Add peers in your run command to unlock this comparison."
+            )
 
     # --- Iron Legion lens (public + pro explanations)
     legion = _load_json(ROOT / "outputs" / f"iron_legion_command_{T}.json", {}) or {}
@@ -748,6 +975,428 @@ def main(ticker: str):
         takeaways.append("Not enough clean data yet; run refresh and re-check before acting.")
     takeaways_html = "".join(f"<li>{htmlmod.escape(t)}</li>" for t in takeaways[:4])
 
+    # --- Red flags (model + interpreted from current data/news) ---
+    decision_red_flags = decision_summary.get("red_flags", []) if isinstance(decision_summary, dict) else []
+    if not isinstance(decision_red_flags, list):
+        decision_red_flags = []
+
+    interpreted_flags = []
+    rev_yoy_f = _safe_float(rev_yoy)
+    fcf_y_f = _safe_float(fcf_y_display)
+    fcf_margin_f = _safe_float(fcf_m)
+    risk_shock_f = _safe_float(risk_shock)
+    risk_total_f = _safe_float(risk_total)
+    nd_to_fcf_f = _safe_float(nd_to_fcf)
+    if rev_yoy_f is not None and rev_yoy_f < 0:
+        interpreted_flags.append("Revenue is shrinking year-over-year.")
+    if fcf_margin_f is not None and fcf_margin_f < 5:
+        interpreted_flags.append("FCF margin is thin (<5%), so cash cushion is limited.")
+    if fcf_y_f is not None and fcf_y_f < 4:
+        interpreted_flags.append("FCF yield is low (<4%), so valuation support from cash return is weak.")
+    if nd_to_fcf_f is not None and nd_to_fcf_f > 4:
+        interpreted_flags.append("Debt load is high relative to cash generation (Net Debt / FCF > 4x).")
+    if risk_shock_f is not None and risk_shock_f < 0:
+        interpreted_flags.append("Headline tone is negative (news shock below 0).")
+    if risk_total_f is not None and risk_total_f > 5:
+        interpreted_flags.append("Risk-tagged negative headlines are elevated (risk total > 5).")
+    if news_trust_grade == "LOW":
+        interpreted_flags.append("News source coverage is weak this run; headline conclusions carry lower confidence.")
+
+    combined_flags = []
+    seen_flags = set()
+    for f in [*decision_red_flags, *interpreted_flags]:
+        fs = str(f).strip()
+        if not fs:
+            continue
+        key = fs.lower()
+        if key in seen_flags:
+            continue
+        seen_flags.add(key)
+        combined_flags.append(fs)
+
+    def _flag_explain(flag: str) -> str:
+        x = str(flag).lower()
+        if "revenue" in x and ("declin" in x or "shrink" in x):
+            return "Falling sales can break growth-based thesis assumptions."
+        if "fcf yield" in x:
+            return "Lower cash return versus company value reduces valuation margin-of-safety."
+        if "fcf margin" in x or "cash cushion" in x:
+            return "Thin margin means less flexibility to absorb shocks."
+        if "debt" in x or "net debt" in x:
+            return "Higher leverage increases downside if business slows."
+        if "headline" in x or "news shock" in x:
+            return "Negative headlines can pressure price even when fundamentals are stable."
+        if "risk-tag" in x or "risk total" in x:
+            return "Repeated negative events raise probability of thesis disruption."
+        if "freshness sla" in x or "data" in x:
+            return "If data is stale, recommendations are less trustworthy."
+        return "This condition weakens conviction and should be monitored before sizing up."
+
+    red_flags_html = "".join(
+        f"<tr><td>{htmlmod.escape(f)}</td><td>{htmlmod.escape(_flag_explain(f))}</td></tr>"
+        for f in combined_flags[:12]
+    ) if combined_flags else (
+        "<tr><td colspan='2' style='opacity:.75;'>No major red flags detected in this run.</td></tr>"
+    )
+
+    confgov = _load_json(ROOT / "outputs" / f"confidence_governor_{T}.json", {}) or {}
+    trust_pass = str(confgov.get("governed_action") or "").upper() != "HOLD FIRE"
+    trust_badge = '<span class="tone good">TRUST PASS</span>' if trust_pass else '<span class="tone bad">TRUST FAIL</span>'
+    trust_explain = "All trust gates passed." if trust_pass else "One or more trust gates failed (data quality/conviction/tests/MC)."
+
+    def _signal_story(metric_name: str, value, unit: str, good_rule: str, okay_rule: str, meaning_good: str, meaning_ok: str, meaning_bad: str):
+        fv = _safe_float(value)
+        if fv is None:
+            return {
+                "metric": metric_name,
+                "value": "—",
+                "zone": "Unknown",
+                "rule": f"Good: {good_rule} | Okay: {okay_rule}",
+                "meaning": "Data missing right now. Wait for refresh before trusting this line.",
+            }
+        if metric_name == "Sales Growth (YoY)":
+            zone = "Good" if fv >= 12 else ("Okay" if fv >= 4 else "Weak")
+        elif metric_name == "FCF Margin":
+            zone = "Good" if fv >= 12 else ("Okay" if fv >= 5 else "Weak")
+        elif metric_name == "FCF Yield":
+            zone = "Good" if fv >= 8 else ("Okay" if fv >= 4 else "Weak")
+        elif metric_name == "Net Debt / FCF":
+            zone = "Good" if fv <= 2 else ("Okay" if fv <= 4 else "Weak")
+        elif metric_name == "News Shock (30d)":
+            zone = "Good" if fv >= 20 else ("Okay" if fv >= 0 else "Weak")
+        else:
+            zone = "Unknown"
+
+        if zone == "Good":
+            meaning = meaning_good
+        elif zone == "Okay":
+            meaning = meaning_ok
+        else:
+            meaning = meaning_bad
+
+        if unit == "pct":
+            disp = _fmt_pct(fv)
+        elif unit == "usd":
+            disp = _fmt_usd(fv)
+        elif unit == "x":
+            disp = _fmt_x(fv)
+        else:
+            disp = _fmt_num(fv)
+
+        return {
+            "metric": metric_name,
+            "value": disp,
+            "zone": zone,
+            "rule": f"Good: {good_rule} | Okay: {okay_rule}",
+            "meaning": meaning,
+            "today_plain": f"{metric_name} is {zone.lower()} right now ({disp}). {meaning}",
+        }
+
+    aha_rows = [
+        _signal_story(
+            "Sales Growth (YoY)", rev_yoy, "pct",
+            ">= 12%", "4% to < 12%",
+            "Demand is clearly expanding; story has momentum.",
+            "Business is growing, but not fast enough to be a clear breakout.",
+            "Growth is weak or shrinking; thesis needs stronger proof.",
+        ),
+        _signal_story(
+            "FCF Margin", fcf_m, "pct",
+            ">= 12%", "5% to < 12%",
+            "Company converts sales into cash efficiently.",
+            "Cash conversion is acceptable but not elite.",
+            "Cash efficiency is thin; harder to self-fund growth.",
+        ),
+        _signal_story(
+            "FCF Yield", fcf_y_display, "pct",
+            ">= 8%", "4% to < 8%",
+            "Cash return vs valuation is attractive.",
+            "Valuation is fair to slightly expensive.",
+            "Cash return is low for the price being paid.",
+        ),
+        _signal_story(
+            "Net Debt / FCF", nd_to_fcf, "x",
+            "<= 2.0x", "> 2.0x to 4.0x",
+            "Balance sheet is flexible; lower solvency stress.",
+            "Debt load is manageable but should be watched.",
+            "Debt burden is heavy relative to cash generation.",
+        ),
+        _signal_story(
+            "News Shock (30d)", risk_shock, "score",
+            ">= 20", "0 to < 20",
+            "Headline flow is stable; fewer negative surprises.",
+            "Noise exists but not a full risk alarm.",
+            "Headline pressure is elevated; expect volatility.",
+        ),
+    ]
+
+    # --- Deep explanation layer: panel guide + metric field manual ---
+    part_guide = [
+        {
+            "part": "Trust Gate",
+            "question": "Can this run be trusted enough for a real decision?",
+            "how": "If TRUST FAIL, treat the run as research only and refresh data before any position.",
+            "mistake": "Using a failed-trust run as a buy/sell trigger.",
+        },
+        {
+            "part": "1-Minute Mission Brief",
+            "question": "What is the single-sentence conclusion right now?",
+            "how": "Use this as a summary, then verify with Red Flags and Aha tables below.",
+            "mistake": "Reading only the headline without checking why.",
+        },
+        {
+            "part": "Company Intel",
+            "question": "Who is this business and what balance-sheet shape does it have?",
+            "how": "Confirm sector, debt load, cash, and coverage confidence before judging valuation.",
+            "mistake": "Comparing companies from different sectors without context.",
+        },
+        {
+            "part": "Closest Competitors",
+            "question": "Is this ticker stronger or weaker than nearby alternatives?",
+            "how": "Compare growth, cash margin, leverage, and risk totals side-by-side.",
+            "mistake": "Comparing against unrelated tickers instead of true peers.",
+        },
+        {
+            "part": "Infinity Readout",
+            "question": "What do the 6 core dimensions say at a glance?",
+            "how": "Look for agreement across Growth + Cash + Risk; mixed readings mean lower conviction.",
+            "mistake": "Overweighting one good metric while ignoring weak risk or debt signals.",
+        },
+        {
+            "part": "Aha Scoreboard",
+            "question": "How does each key metric rank by fixed thresholds?",
+            "how": "Use the same threshold table every run to compare apples-to-apples.",
+            "mistake": "Changing thresholds mentally between tickers.",
+        },
+        {
+            "part": "Monte Carlo + DCF Cone",
+            "question": "What range of values is plausible, and how far is price from value?",
+            "how": "Use P10/P50/P90 as probability range; avoid treating one point estimate as certainty.",
+            "mistake": "Reading model outputs as guarantees.",
+        },
+        {
+            "part": "Risk + News + Stormbreaker",
+            "question": "Is the thesis being weakened by headlines or failing evidence checks?",
+            "how": "Cross-check Risk Total, News Shock, and Stormbreaker fail count before sizing up.",
+            "mistake": "Ignoring repeated negative headlines because fundamentals look good.",
+        },
+        {
+            "part": "Red Flags + Receipts + Sensor Bus",
+            "question": "What can break the thesis and where did each number come from?",
+            "how": "Use Red Flags to spot failure modes; use Receipts/Sensor Bus for auditability.",
+            "mistake": "Trusting numbers without checking source/provenance.",
+        },
+    ]
+    part_guide_rows_html = "".join(
+        "<tr>"
+        f"<td><b>{htmlmod.escape(p['part'])}</b></td>"
+        f"<td>{htmlmod.escape(p['question'])}</td>"
+        f"<td>{htmlmod.escape(p['how'])}</td>"
+        f"<td>{htmlmod.escape(p['mistake'])}</td>"
+        "</tr>"
+        for p in part_guide
+    )
+
+    def _metric_read(name: str, value):
+        fv = _safe_float(value)
+        if fv is None:
+            return "Value is missing in this run; treat this metric as unresolved."
+        if name == "growth":
+            if fv >= 12:
+                return "Strong demand momentum. Growth supports thesis expansion."
+            if fv >= 4:
+                return "Moderate growth. Thesis is alive but not dominant."
+            return "Weak/negative growth. Thesis needs stronger confirmation."
+        if name == "fcf_margin":
+            if fv >= 12:
+                return "Cash efficiency is strong. Business converts revenue into usable cash well."
+            if fv >= 5:
+                return "Cash efficiency is acceptable but not elite."
+            return "Thin cash conversion. Company has less room for error."
+        if name == "fcf_yield":
+            if fv >= 8:
+                return "Attractive cash return versus valuation."
+            if fv >= 4:
+                return "Fair cash return; valuation is not obviously cheap."
+            return "Low cash return for valuation paid."
+        if name == "nd_to_fcf":
+            if fv <= 2:
+                return "Debt appears manageable relative to cash generation."
+            if fv <= 4:
+                return "Debt is serviceable but worth monitoring."
+            return "Debt burden is high relative to current cash output."
+        if name == "news_shock":
+            if fv >= 20:
+                return "Headline tone is mostly stable."
+            if fv >= 0:
+                return "Mixed headline climate; monitor for trend deterioration."
+            return "Negative headline pressure is elevated."
+        if name == "risk_total":
+            if fv <= 2:
+                return "Low count of risk-tag negatives."
+            if fv <= 5:
+                return "Moderate risk event count."
+            return "High risk-event frequency; thesis fragility is higher."
+        if name == "mispricing":
+            if fv > 0:
+                return "Model base value is above price (potential upside gap)."
+            return "Model base value is at/below price (limited upside by this model)."
+        if name == "prob_up20":
+            if fv >= 60:
+                return "Model sees meaningful upside-skew probability."
+            if fv >= 30:
+                return "Upside scenario exists but not dominant."
+            return "Low probability of +20% upside in this setup."
+        if name == "prob_down20":
+            if fv <= 20:
+                return "Lower modeled downside-tail risk."
+            if fv <= 40:
+                return "Moderate downside-tail risk."
+            return "High modeled downside-tail risk."
+        return "Interpret with surrounding metrics for context."
+
+    metric_manual = [
+        {
+            "metric": "Price",
+            "value": _fmt_usd(price),
+            "what": "Latest traded share price used as valuation anchor.",
+            "why": "All upside/downside math is measured versus this anchor.",
+            "formula": "Market last trade (provider quote)",
+            "read": "Price alone does not imply cheap or expensive; compare with DCF/MC range.",
+            "watch": "Intraday noise can be high; avoid overreacting to single prints.",
+        },
+        {
+            "metric": "Market Cap",
+            "value": _fmt_usd(mcap),
+            "what": "Equity value = share price x shares outstanding.",
+            "why": "Used in FCF yield and relative size comparisons.",
+            "formula": "Price x Shares Outstanding",
+            "read": "Larger cap often means stability but can reduce growth velocity.",
+            "watch": "Share count changes (buybacks/dilution) shift comparability.",
+        },
+        {
+            "metric": "Sales Growth (YoY)",
+            "value": _fmt_pct(rev_yoy),
+            "what": "Percent change in trailing-12-month revenue vs prior year.",
+            "why": "Shows whether demand and adoption are expanding.",
+            "formula": "((Revenue_TTM / Revenue_TTM_1Y_Ago) - 1) x 100",
+            "read": _metric_read("growth", rev_yoy),
+            "watch": "Acquisitions and one-time comps can distort true organic growth.",
+        },
+        {
+            "metric": "FCF (TTM)",
+            "value": _fmt_usd(fcf_ttm_display),
+            "what": "Cash left after operating needs and capex over trailing 12 months.",
+            "why": "Funds debt service, buybacks, reinvestment, and resilience.",
+            "formula": "Operating Cash Flow - Capital Expenditures",
+            "read": "Higher sustained FCF improves survival and optionality.",
+            "watch": "One-off working-capital swings can temporarily inflate/deflate FCF.",
+        },
+        {
+            "metric": "FCF Margin",
+            "value": _fmt_pct(fcf_m),
+            "what": "Share of revenue converted into free cash flow.",
+            "why": "Measures operating quality and efficiency.",
+            "formula": "(FCF_TTM / Revenue_TTM) x 100",
+            "read": _metric_read("fcf_margin", fcf_m),
+            "watch": "Capex cycles can compress margin temporarily in growth phases.",
+        },
+        {
+            "metric": "FCF Yield",
+            "value": _fmt_pct(fcf_y_display),
+            "what": "Cash return generated relative to equity value.",
+            "why": "Helps judge valuation support from real cash production.",
+            "formula": "(FCF_TTM / Market_Cap) x 100",
+            "read": _metric_read("fcf_yield", fcf_y_display),
+            "watch": "Very low yield can be fine for high-growth firms only if growth is real.",
+        },
+        {
+            "metric": "Net Debt / FCF",
+            "value": _fmt_x(nd_to_fcf),
+            "what": "Debt burden relative to annual cash generation.",
+            "why": "Approximates balance-sheet stress and flexibility.",
+            "formula": "Net_Debt / FCF_TTM",
+            "read": _metric_read("nd_to_fcf", nd_to_fcf),
+            "watch": "If FCF turns down, this ratio can deteriorate quickly.",
+        },
+        {
+            "metric": "News Shock (30d)",
+            "value": _fmt_num(risk_shock),
+            "what": "Aggregate headline tone score over 30 days.",
+            "why": "Captures sentiment pressure that fundamentals may not show yet.",
+            "formula": "Sum of weighted negative/positive headline impacts",
+            "read": _metric_read("news_shock", risk_shock),
+            "watch": "Short-term media clusters can overstate near-term risk.",
+        },
+        {
+            "metric": "Risk Total (30d)",
+            "value": _fmt_num(risk_total),
+            "what": "Count of risk-tagged negative events in the last 30 days.",
+            "why": "Tracks event frequency (regulatory/labor/insurance/etc.).",
+            "formula": "Count of negative risk-tag headlines",
+            "read": _metric_read("risk_total", risk_total),
+            "watch": "Repeated moderate negatives can matter more than one severe headline.",
+        },
+        {
+            "metric": "Base-vs-Price Gap",
+            "value": base_delta,
+            "what": "Difference between model base valuation and current market price.",
+            "why": "Primary mispricing signal for upside/downside framing.",
+            "formula": "((DCF_Base / Price) - 1) x 100",
+            "read": _metric_read("mispricing", base_delta_f),
+            "watch": "Model quality depends on input freshness and assumptions.",
+        },
+        {
+            "metric": "Prob Up >=20% (MC)",
+            "value": _fmt_pct((mc_up20 * 100.0) if mc_up20 is not None else None),
+            "what": "Simulated probability that valuation lands at least 20% above current price.",
+            "why": "Quantifies upside scenario likelihood, not just direction.",
+            "formula": "Monte Carlo share of outcomes with return >= +20%",
+            "read": _metric_read("prob_up20", (mc_up20 * 100.0) if mc_up20 is not None else None),
+            "watch": "If fallback cone is active, treat this as lower-confidence guidance.",
+        },
+        {
+            "metric": "Prob Down >=20% (MC)",
+            "value": _fmt_pct((mc_down20 * 100.0) if mc_down20 is not None else None),
+            "what": "Simulated probability of at least 20% downside.",
+            "why": "Helps size risk and avoid asymmetric downside setups.",
+            "formula": "Monte Carlo share of outcomes with return <= -20%",
+            "read": _metric_read("prob_down20", (mc_down20 * 100.0) if mc_down20 is not None else None),
+            "watch": "Use with reliability grade; stale inputs can under/overstate tails.",
+        },
+    ]
+    metric_manual_rows_html = "".join(
+        "<tr>"
+        f"<td><b>{htmlmod.escape(m['metric'])}</b></td>"
+        f"<td>{htmlmod.escape(m['value'])}</td>"
+        f"<td>{htmlmod.escape(m['what'])}</td>"
+        f"<td>{htmlmod.escape(m['why'])}</td>"
+        f"<td><code>{htmlmod.escape(m['formula'])}</code></td>"
+        f"<td>{htmlmod.escape(m['read'])}</td>"
+        f"<td>{htmlmod.escape(m['watch'])}</td>"
+        "</tr>"
+        for m in metric_manual
+    )
+
+    _zone_class = {"Good": "good", "Okay": "ok", "Weak": "bad", "Unknown": "neutral"}
+    aha_decoder_html = "".join(
+        f"<li><b>{htmlmod.escape(r['metric'])}</b>: {htmlmod.escape(r['value'])} -> "
+        f"<span class=\"tone {_zone_class.get(r['zone'], 'neutral')}\">{htmlmod.escape(r['zone'])}</span>. "
+        f"{htmlmod.escape(r.get('today_plain') or r['meaning'])}</li>"
+        for r in aha_rows
+    )
+    aha_rows_html = "".join(
+        "<tr>"
+        f"<td>{htmlmod.escape(r['metric'])}</td>"
+        f"<td>{htmlmod.escape(r['value'])}</td>"
+        f"<td><span class=\"tone {_zone_class.get(r['zone'], 'neutral')}\">{htmlmod.escape(r['zone'])}</span></td>"
+        f"<td>{htmlmod.escape(r['rule'])}</td>"
+        f"<td>{htmlmod.escape(r['meaning'])}</td>"
+        f"<td>{htmlmod.escape(r.get('today_plain') or r['meaning'])}</td>"
+        "</tr>"
+        for r in aha_rows
+    )
+
     html = f"""
 <!doctype html>
 <html>
@@ -813,6 +1462,8 @@ a {{ color:#8fd3ff; text-decoration:none; }}
 .rct_k{{opacity:.65;margin-right:6px}}
 .pvt th, .pvt td {{ border-bottom:1px solid #1f2a3a; padding:8px 6px; text-align:left; font-size:13px; }}
 .pvt th {{ color:var(--muted); text-transform:uppercase; letter-spacing:.08em; font-size:11px; }}
+.aha-table th, .aha-table td {{ border-bottom:1px solid #1f2a3a; padding:8px 6px; text-align:left; font-size:13px; vertical-align:top; }}
+.aha-table th {{ color:var(--muted); text-transform:uppercase; letter-spacing:.08em; font-size:11px; }}
 .aha {{
   border-left: 3px solid #3ea5ff;
   background: rgba(62,165,255,.07);
@@ -840,6 +1491,12 @@ a {{ color:#8fd3ff; text-decoration:none; }}
 
   <div class="grid">
     <div class="card span-12">
+      <div class="k">Trust Gate</div>
+      <div class="row"><div>System trust status</div><div>{trust_badge}</div></div>
+      <div class="small">{htmlmod.escape(trust_explain)}</div>
+    </div>
+
+    <div class="card span-12">
       <div class="k">1-Minute Mission Brief (Start Here)</div>
       <div class="row"><div>Verdict</div><div>{one_line_tone}</div></div>
       <div class="v" style="font-size:21px;">{htmlmod.escape(one_line_call)}</div>
@@ -863,6 +1520,46 @@ a {{ color:#8fd3ff; text-decoration:none; }}
       <div class="k">Ticker Lock (What You Are Viewing)</div>
       <div class="row"><div>Active ticker</div><div><span class="pill" style="font-weight:800;">{T}</span></div></div>
       <div class="small">Armor-themed labels are shown with plain-English meaning so any user can follow the decision path.</div>
+    </div>
+
+    <div class="card span-12">
+      <div class="k">Company Intel (Identity + Structure)</div>
+      <div class="row"><div><b>{htmlmod.escape(str(ci_name))}</b> · {htmlmod.escape(str(ci_sector))} / {htmlmod.escape(str(ci_industry))}</div><div>{ci_tone} <span class="pill">{htmlmod.escape(ci_grade)}</span></div></div>
+      <div class="row"><div>Exchange / Country</div><div>{htmlmod.escape(str(ci_exchange))} / {htmlmod.escape(str(ci_country))}</div></div>
+      <div class="row"><div>SEC CIK</div><div>{htmlmod.escape(str(ci_cik))}</div></div>
+      <div class="row"><div>Intel price / market cap</div><div>{ci_price} · {ci_mcap}</div></div>
+      <div class="row"><div>Snapshot period end</div><div>{htmlmod.escape(str(snap_period_end))}</div></div>
+      <div class="row"><div>Revenue (TTM)</div><div>{_fmt_usd(snap_revenue_ttm)}</div></div>
+      <div class="row"><div>Cash / Debt</div><div>{_fmt_usd(snap_cash)} / {_fmt_usd(snap_debt)}</div></div>
+      <div class="row"><div>Net debt / FCF</div><div>{_fmt_x(nd_to_fcf)}</div></div>
+      <div class="row"><div>Provider variance (price / mcap)</div><div>{ci_pvar} / {ci_mvar}</div></div>
+      <div class="small"><b>Coverage:</b> {htmlmod.escape(str(ci_cov if ci_cov is not None else '—'))} fields populated. <b>Website:</b> {htmlmod.escape(str(ci_website))}</div>
+      <div class="small">{htmlmod.escape(ci_desc)}</div>
+      <div class="small">Source file: <code>outputs/company_intel_{T}.json</code></div>
+    </div>
+
+    <div class="card span-12">
+      <div class="k">Closest Competitors (Side-by-Side Check)</div>
+      <div class="small">{htmlmod.escape(competitors_context)}</div>
+      <table class="aha-table" style="width:100%; margin-top:8px; border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th>Ticker</th>
+            <th>Price</th>
+            <th>Market Cap</th>
+            <th>Sales YoY</th>
+            <th>FCF Margin</th>
+            <th>FCF Yield</th>
+            <th>Net Debt / FCF</th>
+            <th>Risk Total (30d)</th>
+            <th>Quick Read</th>
+          </tr>
+        </thead>
+        <tbody>
+          {competitors_rows_html}
+        </tbody>
+      </table>
+      <div class="small">Tip: pass peers in Vision run (example: <code>--peers MSFT,AMZN</code>) for more relevant competitor matching.</div>
     </div>
 
     <div class="card span-12">
@@ -891,6 +1588,51 @@ a {{ color:#8fd3ff; text-decoration:none; }}
     </div>
 
     <div class="card span-6">
+      <div class="k">Part-by-Part Walkthrough (How To Use Every Panel)</div>
+      <div class="small">If you are new to finance, use this table as the HUD reading order and interpretation key.</div>
+      <table class="aha-table" style="width:100%; margin-top:8px; border-collapse:collapse;">
+        <thead>
+          <tr><th>Panel</th><th>Question It Answers</th><th>How To Use It</th><th>Common Misread</th></tr>
+        </thead>
+        <tbody>
+          {part_guide_rows_html}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card span-12">
+      <div class="k">Aha Mode: Apples-to-Apples Scoreboard</div>
+      <div class="small">Same thresholds every run. This keeps comparisons fair and easy to understand across all tickers.</div>
+      <div class="aha">
+        <b>Interpretation Decoder:</b>
+        <ul>
+          {aha_decoder_html}
+        </ul>
+      </div>
+      <table class="aha-table" style="width:100%; margin-top:8px; border-collapse:collapse;">
+        <thead>
+          <tr><th>Metric</th><th>Your Number</th><th>Zone</th><th>Rule</th><th>What It Means</th><th>Plain-English Today</th></tr>
+        </thead>
+        <tbody>
+          {aha_rows_html}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card span-12">
+      <div class="k">Metric Field Manual (Detailed Explanations)</div>
+      <div class="small">Each metric below includes what it is, why it matters, the formula, how to read today’s value, and the main caveat.</div>
+      <table class="aha-table" style="width:100%; margin-top:8px; border-collapse:collapse;">
+        <thead>
+          <tr><th>Metric</th><th>Current</th><th>What It Is</th><th>Why It Matters</th><th>Formula</th><th>How To Read Today</th><th>Watch-Out</th></tr>
+        </thead>
+        <tbody>
+          {metric_manual_rows_html}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card span-6">
       <div class="k">Macro Context (Plain-English Impact)</div>
       <div class="row"><div>Regime</div><div>{macro_tone} <span class="pill">{htmlmod.escape(macro_regime)}</span></div></div>
       <div class="row"><div>10Y yield (DGS10)</div><div>{_fmt_num(macro_dgs10)}%</div></div>
@@ -913,12 +1655,14 @@ a {{ color:#8fd3ff; text-decoration:none; }}
 
     <div class="card span-6">
       <div class="k">Monte Carlo DCF (Distribution / Probability View)</div>
+      <div class="row"><div>Confidence grade</div><div>{mc_conf_tone} <span class="pill">{htmlmod.escape(mc_conf_grade)}</span></div></div>
       <div class="row"><div>P10</div><div><span class="pill">{_fmt_usd(mc_p10)}</span></div></div>
       <div class="row"><div>P50</div><div><span class="pill">{_fmt_usd(mc_p50)}</span></div></div>
       <div class="row"><div>P90</div><div><span class="pill">{_fmt_usd(mc_p90)}</span></div></div>
       <div class="row"><div>Prob down ≥20%</div><div>{_fmt_pct((mc_down20 or 0)*100.0)}</div></div>
       <div class="row"><div>Prob up ≥20%</div><div>{_fmt_pct((mc_up20 or 0)*100.0)}</div></div>
       {f'<div class="small"><span class="tone bad">Monte Carlo fallback active</span> Synthetic cone used ({htmlmod.escape(str(mc_fallback_reason or "unknown_reason"))}).</div>' if mc_fallback_used else ''}
+      <div class="small"><b>Why confidence is {htmlmod.escape(mc_conf_grade)}:</b> {htmlmod.escape(mc_conf_reason)}</div>
       <div class="small">Interpretation: this is a range of plausible values, not one exact target.</div>
       <div class="small">Source: {mc_path or "N/A"} (triangular assumptions over DCF cone)</div>
     </div>
@@ -944,13 +1688,38 @@ a {{ color:#8fd3ff; text-decoration:none; }}
     </div>
 
     <div class="card span-12">
+      <div class="k">News Source Checks (Where Headlines Came From)</div>
+      <div class="row"><div>Enabled sources</div><div>{htmlmod.escape(news_sources_enabled_s)}</div></div>
+      <div class="row"><div>Source trust</div><div>{news_trust_tone} <span class="pill">{htmlmod.escape(news_trust_grade)}</span></div></div>
+      <div class="row"><div>Preflight checks passed</div><div>{_fmt_num(news_checks_passed)} / {_fmt_num(news_checks_total)}</div></div>
+      <div class="row"><div>Evidence rows (30d)</div><div>{_fmt_num(news_evidence_rows)}</div></div>
+      <div class="row"><div>Source mix (30d)</div><div>{htmlmod.escape(news_source_mix)}</div></div>
+      <div class="small">{news_tab_link}</div>
+      <div class="small">Raw evidence: <a href="../../outputs/news_evidence_{T}.html">news_evidence_{T}.html</a></div>
+    </div>
+
+    <div class="card span-12">
       <div class="k">Stormbreaker Verdict (Thesis Stress Tests)</div>
       <div class="row"><div>Overall</div><div>{sb_tone}</div></div>
       <div class="row"><div>PASS</div><div><b>{sb_pass}</b></div></div>
       <div class="row"><div>FAIL</div><div><b>{sb_fail}</b></div></div>
       <div class="row"><div>UNKNOWN</div><div><b>{sb_unknown}</b></div></div>
       <div class="small">Stormbreaker checks whether your thesis claims are supported by current data.</div>
-      <div class="small">Open full diagnostics: <a href="../../outputs/claim_evidence_{T}.html">claim_evidence_{T}.html</a></div>
+      <div class="small">Open dedicated tab: <a href="{T}_STORMBREAKER.html">{T}_STORMBREAKER.html</a></div>
+      <div class="small">Raw diagnostics: <a href="../../outputs/claim_evidence_{T}.html">claim_evidence_{T}.html</a></div>
+    </div>
+
+    <div class="card span-12">
+      <div class="k">Company Red Flags (Data + News Interpretation)</div>
+      <div class="small">These are the concrete issues the engine sees right now, translated into plain English.</div>
+      <table class="aha-table" style="width:100%; margin-top:8px; border-collapse:collapse;">
+        <thead>
+          <tr><th>Red Flag</th><th>Why It Matters</th></tr>
+        </thead>
+        <tbody>
+          {red_flags_html}
+        </tbody>
+      </table>
     </div>
 
     <div class="card span-12">

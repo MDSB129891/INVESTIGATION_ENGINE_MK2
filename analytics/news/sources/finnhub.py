@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import os
-import time
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
-import requests
+from analytics.provider_net import request_with_resilience
 
 from ..schema import NewsItem
 
@@ -19,20 +18,11 @@ def _key() -> str:
     return k
 
 
-def _get(url: str, params: dict, timeout: int = 30, retries: int = 2) -> requests.Response:
-    last_err: Optional[Exception] = None
-    for i in range(retries + 1):
-        try:
-            r = requests.get(url, params=params, timeout=timeout)
-            if r.status_code in (429, 502, 503, 504):
-                time.sleep(1.5 * (i + 1))
-                continue
-            r.raise_for_status()
-            return r
-        except Exception as e:
-            last_err = e
-            time.sleep(1.0 * (i + 1))
-    raise RuntimeError(f"Finnhub request failed: {last_err}")
+def _get(url: str, params: dict, timeout: int = 30, retries: int = 2):
+    try:
+        return request_with_resilience("finnhub", url, params=params, timeout=timeout, max_retries=retries)
+    except Exception as e:
+        raise RuntimeError(f"Finnhub request failed: {e}")
 
 
 def fetch_finnhub_company_news(ticker: str, days_back: int = 30, max_items: int = 200) -> List[NewsItem]:

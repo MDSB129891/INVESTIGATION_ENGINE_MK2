@@ -21,18 +21,25 @@ def main(ticker: str):
     out = ROOT / "outputs"
     il = _read(out / f"iron_legion_command_{t}.json")
     integ = _read(out / f"pipeline_integrity_{t}.json")
+    ds = _read(out / f"decision_summary_{t}.json")
     focus = (il or {}).get("focus", {})
     rel = float(focus.get("reliability_score", 0.0))
     conv = float(focus.get("conviction_score", 0.0))
     tests = focus.get("thesis_test_counts", {}) or {}
     fail_n = int(tests.get("fail", 0))
     refresh_warn = (integ.get("refresh_warnings") or [])
+    missing_metric_fields = integ.get("missing_metric_provider_fields") or []
+    mc_fallback = bool((focus.get("reliability_details") or {}).get("mc_fallback_used", False))
+    freshness_passed = bool(((ds.get("freshness_sla") or {}).get("passed", False)))
 
     gates = {
         "reliability_gate": rel >= 75.0,
         "conviction_gate": conv >= 60.0,
         "thesis_fail_gate": fail_n == 0,
         "data_stability_gate": len(refresh_warn) <= 4,
+        "metric_completeness_gate": len(missing_metric_fields) == 0,
+        "freshness_gate": freshness_passed,
+        "mc_quality_gate": not mc_fallback,
     }
     all_pass = all(gates.values())
     governed_action = focus.get("action", "HOLD FIRE")
@@ -49,7 +56,9 @@ def main(ticker: str):
             "Governor allows deploy only when conviction, reliability, and thesis quality are all healthy."
         ),
         "summary_pro": (
-            f"gates={gates}, reliability={rel}, conviction={conv}, thesis_fail={fail_n}, refresh_warn_count={len(refresh_warn)}"
+            f"gates={gates}, reliability={rel}, conviction={conv}, thesis_fail={fail_n}, "
+            f"refresh_warn_count={len(refresh_warn)}, missing_metric_fields={len(missing_metric_fields)}, "
+            f"freshness_passed={freshness_passed}, mc_fallback={mc_fallback}"
         ),
     }
 
@@ -74,4 +83,3 @@ if __name__ == "__main__":
     ap.add_argument("--ticker", required=True)
     args = ap.parse_args()
     main(args.ticker)
-

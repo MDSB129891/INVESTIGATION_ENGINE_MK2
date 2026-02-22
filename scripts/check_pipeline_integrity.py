@@ -34,6 +34,7 @@ def main(ticker: str):
         "iron_legion": outputs / f"iron_legion_command_{t}.json",
         "mission_report": outputs / f"mission_report_{t}.json",
         "hud": canon / f"{t}_IRONMAN_HUD.html",
+        "news_sources": canon / f"{t}_NEWS_SOURCES.html",
         "core_metrics": canon / f"{t}_CORE_METRICS.json",
         "decision_core": canon / f"{t}_DECISION_CORE.json",
         "montecarlo": canon / f"{t}_MONTECARLO.json",
@@ -83,4 +84,3 @@ if __name__ == "__main__":
     ap.add_argument("--ticker", required=True)
     args = ap.parse_args()
     main(args.ticker)
-

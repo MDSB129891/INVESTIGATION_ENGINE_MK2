@@ -11,6 +11,9 @@ from .scoring import score_and_tag
 
 from .sources.sec import fetch_sec_filings
 from .sources.finnhub import fetch_finnhub_company_news
+from .sources.tiingo import fetch_tiingo_news
+from .sources.marketaux import fetch_marketaux_news
+from .sources.alphavantage import fetch_alphavantage_news
 
 
 def run_news_pipeline(
@@ -24,6 +27,9 @@ def run_news_pipeline(
     Stable multi-source news:
       - SEC filings
       - Finnhub company news
+      - Tiingo news
+      - Marketaux news
+      - AlphaVantage news
 
     Returns a unified per-article DataFrame.
     """
@@ -62,6 +68,36 @@ def run_news_pipeline(
         # Finnhub news-sentiment endpoint is often paywalled (403) — we use our proxy instead.
         if debug and "finnhub" in enable_sources:
             print(f"[news] finnhub_sentiment {t}: SKIPPED (use proxy)")
+
+        if "tiingo" in enable_sources:
+            try:
+                got = fetch_tiingo_news(t, days_back=days_back, max_items=200)
+                if debug:
+                    print(f"[news] tiingo {t}: {len(got)}")
+                items.extend(got)
+            except Exception as e:
+                if debug:
+                    print(f"[news] tiingo {t} ERROR: {e}")
+
+        if "marketaux" in enable_sources:
+            try:
+                got = fetch_marketaux_news(t, days_back=days_back, max_items=200)
+                if debug:
+                    print(f"[news] marketaux {t}: {len(got)}")
+                items.extend(got)
+            except Exception as e:
+                if debug:
+                    print(f"[news] marketaux {t} ERROR: {e}")
+
+        if "alphavantage" in enable_sources:
+            try:
+                got = fetch_alphavantage_news(t, days_back=days_back, max_items=200)
+                if debug:
+                    print(f"[news] alphavantage {t}: {len(got)}")
+                items.extend(got)
+            except Exception as e:
+                if debug:
+                    print(f"[news] alphavantage {t} ERROR: {e}")
 
     # Tag + score
     items = score_and_tag(items)

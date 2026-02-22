@@ -14,6 +14,16 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
 
 
+def _require_python_311():
+    if sys.version_info < (3, 11):
+        v = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        raise SystemExit(
+            "VISION requires Python 3.11+ for TLS/runtime stability.\n"
+            f"Current interpreter: {v} ({sys.executable})\n"
+            "Use: ./scripts/woosh.sh ... (auto-bootstraps .venv with 3.11+), or run vision via a 3.11+ venv."
+        )
+
+
 def _run(cmd, env=None, allow_fail=False):
     pretty = " ".join(shlex.quote(str(x)) for x in cmd)
     print(f"$ {pretty}")
@@ -32,6 +42,7 @@ def _script(name: str) -> Path:
 
 
 def main():
+    _require_python_311()
     ap = argparse.ArgumentParser(description="VISION controller: ticker + thesis -> full armor pipeline")
     ap.add_argument("ticker", help="Ticker symbol (e.g., GM)")
     ap.add_argument("thesis", help="Plain-English thesis text")
@@ -70,12 +81,15 @@ def main():
 
     post_steps = [
         ("build_news_risk_summary.py", ["--ticker", t]),
+        ("build_news_sources_tab.py", ["--ticker", t]),
+        ("build_company_intel.py", ["--ticker", t]),
         ("build_macro_context.py", []),  # optional script, skip if missing
         ("friday/build_core_metrics.py", ["--ticker", t]),
         ("friday/build_decision_core.py", ["--ticker", t]),
         ("build_montecarlo.py", ["--ticker", t]),
         ("build_timestone.py", ["--ticker", t]),
         ("build_claim_evidence.py", ["--ticker", t, "--thesis", str(thesis_out)]),
+        ("build_stormbreaker_tab.py", ["--ticker", t]),
         ("build_receipts_index.py", ["--ticker", t]),
         ("build_ironman_hud.py", ["--ticker", t]),
         ("build_iron_legion.py", ["--focus", t]),
@@ -96,6 +110,7 @@ def main():
 
     soft_fail_steps = {
         "build_macro_context.py",
+        "build_company_intel.py",
         "build_mission_report.py",
         "build_recommendation_brief.py",
         "build_montecarlo.py",
@@ -170,6 +185,8 @@ def main():
     print("DONE ✅ VISION")
     print(f"- Thesis: {thesis_out}")
     print(f"- HUD: {ROOT / 'export' / f'CANON_{t}' / f'{t}_IRONMAN_HUD.html'}")
+    print(f"- News Sources Tab: {ROOT / 'export' / f'CANON_{t}' / f'{t}_NEWS_SOURCES.html'}")
+    print(f"- Stormbreaker Tab: {ROOT / 'export' / f'CANON_{t}' / f'{t}_STORMBREAKER.html'}")
     print(f"- Iron Legion Command: {ROOT / 'outputs' / f'iron_legion_command_{t}.html'}")
     print(f"- Recommendation Brief PDF: {ROOT / 'outputs' / f'recommendation_brief_{t}.pdf'}")
     print(f"- Legion Commander: {ROOT / 'outputs' / f'legion_commander_{t}.html'}")

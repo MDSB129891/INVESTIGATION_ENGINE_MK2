@@ -5,9 +5,11 @@ import argparse
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any, Dict
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "outputs"
+DATA = ROOT / "data" / "processed"
 
 
 def _read_json(path: Path, default):
@@ -25,6 +27,80 @@ def _write(path: Path, text: str):
     print("DONE ✅ wrote:", path)
 
 
+def _safe_float(v):
+    try:
+        return float(v)
+    except Exception:
+        return None
+
+
+def _fmt_usd(v):
+    x = _safe_float(v)
+    if x is None:
+        return "N/A"
+    a = abs(x)
+    if a >= 1e12:
+        return f"${x / 1e12:.2f}T"
+    if a >= 1e9:
+        return f"${x / 1e9:.2f}B"
+    if a >= 1e6:
+        return f"${x / 1e6:.2f}M"
+    if a >= 1e3:
+        return f"${x / 1e3:.2f}K"
+    return f"${x:,.2f}"
+
+
+def _fmt_pct(v):
+    x = _safe_float(v)
+    if x is None:
+        return "N/A"
+    return f"{x:.2f}%"
+
+
+def _load_snapshot_row(ticker: str) -> Dict[str, Any]:
+    import csv
+
+    path = DATA / "comps_snapshot.csv"
+    if not path.exists():
+        return {}
+    t = ticker.upper().strip()
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            rows = list(csv.DictReader(f))
+    except Exception:
+        return {}
+    for row in rows:
+        tk = str(row.get("ticker") or row.get("symbol") or "").upper().strip()
+        if tk == t:
+            return row
+    return {}
+
+
+def _signal_label(value, mode: str) -> str:
+    x = _safe_float(value)
+    if x is None:
+        return "Unknown"
+    if mode == "growth":
+        if x >= 12:
+            return "Strong"
+        if x >= 4:
+            return "Mixed"
+        return "Weak"
+    if mode == "fcf_margin":
+        if x >= 12:
+            return "Strong"
+        if x >= 5:
+            return "Mixed"
+        return "Weak"
+    if mode == "risk_shock":
+        if x >= 20:
+            return "Calm"
+        if x >= 0:
+            return "Mixed"
+        return "Stressed"
+    return "Unknown"
+
+
 def _build_payload(ticker: str, thesis: str) -> dict:
     t = ticker.upper().strip()
     legion = _read_json(OUT / f"iron_legion_command_{t}.json", _read_json(OUT / "iron_legion_command.json", {}))
@@ -39,6 +115,26 @@ def _build_payload(ticker: str, thesis: str) -> dict:
     penalty = float(focus.get("conviction_penalty") or 0.0)
     street_simple = str(focus.get("explain_public") or "")
     desk_deep = str(focus.get("explain_pro") or "")
+    storm = _read_json(OUT / f"claim_evidence_{t}.json", {})
+    storm_results = storm.get("results", []) if isinstance(storm, dict) else []
+    storm_pass = sum(1 for r in storm_results if str((r or {}).get("status", "")).upper() == "PASS")
+    storm_fail = sum(1 for r in storm_results if str((r or {}).get("status", "")).upper() == "FAIL")
+    storm_unknown = sum(1 for r in storm_results if str((r or {}).get("status", "")).upper() == "UNKNOWN")
+
+    summary = _read_json(OUT / f"decision_summary_{t}.json", {})
+    news = (summary or {}).get("news_sentiment_proxy", {}) if isinstance(summary, dict) else {}
+    news_shock_30d = news.get("shock_30d")
+    snapshot = _load_snapshot_row(t)
+    price = snapshot.get("price")
+    mcap = snapshot.get("market_cap")
+    revenue_yoy = snapshot.get("revenue_ttm_yoy_pct")
+    fcf_ttm = snapshot.get("fcf_ttm") or snapshot.get("free_cash_flow_ttm")
+    fcf_margin = snapshot.get("fcf_margin_ttm_pct")
+    net_debt_to_fcf = snapshot.get("net_debt_to_fcf_ttm")
+
+    growth_signal = _signal_label(revenue_yoy, "growth")
+    cash_signal = _signal_label(fcf_margin, "fcf_margin")
+    risk_signal = _signal_label(news_shock_30d, "risk_shock")
 
     if action.startswith("DEPLOY"):
         recommendation = "BUY CANDIDATE"
@@ -64,10 +160,32 @@ def _build_payload(ticker: str, thesis: str) -> dict:
         "reliability_score": reliability_score,
         "street_simple": street_simple,
         "desk_deep": desk_deep,
+        "snapshot": {
+            "price": price,
+            "market_cap": mcap,
+            "revenue_ttm_yoy_pct": revenue_yoy,
+            "fcf_ttm": fcf_ttm,
+            "fcf_margin_ttm_pct": fcf_margin,
+            "net_debt_to_fcf_ttm": net_debt_to_fcf,
+            "news_shock_30d": news_shock_30d,
+        },
+        "signals": {
+            "growth": growth_signal,
+            "cash_quality": cash_signal,
+            "risk_temperature": risk_signal,
+        },
+        "stormbreaker": {
+            "pass": storm_pass,
+            "fail": storm_fail,
+            "unknown": storm_unknown,
+        },
     }
 
 
 def _write_html(payload: dict, path: Path):
+    snapshot = payload.get("snapshot", {})
+    signals = payload.get("signals", {})
+    storm = payload.get("stormbreaker", {})
     html = f"""<!doctype html>
 <html><head><meta charset="utf-8"><title>Recommendation Brief — {payload['ticker']}</title>
 <style>
@@ -94,6 +212,30 @@ body{{font-family:ui-sans-serif,system-ui;background:#0f1524;color:#ecf3ff;paddi
   <h3 style="margin-top:0;">Plain-English Summary</h3>
   <div><b>Street-Simple:</b> {payload['street_simple']}</div>
   <div style="margin-top:8px;"><b>Desk-Deep:</b> {payload['desk_deep']}</div>
+</div>
+<div class="card">
+  <h3 style="margin-top:0;">Company Snapshot (What Is Happening Now)</h3>
+  <div>Price: <b>{_fmt_usd(snapshot.get('price'))}</b></div>
+  <div>Market cap: <b>{_fmt_usd(snapshot.get('market_cap'))}</b></div>
+  <div>Sales growth (YoY): <b>{_fmt_pct(snapshot.get('revenue_ttm_yoy_pct'))}</b></div>
+  <div>Free cash flow (TTM): <b>{_fmt_usd(snapshot.get('fcf_ttm'))}</b></div>
+  <div>FCF margin: <b>{_fmt_pct(snapshot.get('fcf_margin_ttm_pct'))}</b></div>
+  <div>Net debt / FCF: <b>{snapshot.get('net_debt_to_fcf_ttm') if snapshot.get('net_debt_to_fcf_ttm') is not None else 'N/A'}</b></div>
+  <div>News shock (30d): <b>{snapshot.get('news_shock_30d') if snapshot.get('news_shock_30d') is not None else 'N/A'}</b></div>
+</div>
+<div class="card">
+  <h3 style="margin-top:0;">Quick Health Read (Easy Mode)</h3>
+  <div>Growth signal: <b>{signals.get('growth', 'Unknown')}</b></div>
+  <div>Cash quality signal: <b>{signals.get('cash_quality', 'Unknown')}</b></div>
+  <div>Risk temperature: <b>{signals.get('risk_temperature', 'Unknown')}</b></div>
+  <div style="margin-top:8px;">Stormbreaker tests: <b>{storm.get('pass', 0)} pass</b>, <b>{storm.get('fail', 0)} fail</b>, <b>{storm.get('unknown', 0)} unknown</b></div>
+</div>
+<div class="card">
+  <h3 style="margin-top:0;">Aha Mode (Apples-to-Apples Rules)</h3>
+  <div><b>Sales growth:</b> Good if >= 12%, Mixed if 4% to < 12%, Weak if < 4%</div>
+  <div><b>FCF margin:</b> Good if >= 12%, Mixed if 5% to < 12%, Weak if < 5%</div>
+  <div><b>News shock:</b> Calm if >= 20, Mixed if 0 to < 20, Stressed if < 0</div>
+  <div style="margin-top:8px;"><b>How to read this:</b> We use the same thresholds for every ticker, so comparisons are fair and understandable.</div>
 </div>
 </body></html>"""
     _write(path, html)
@@ -124,6 +266,26 @@ def _write_pdf(payload: dict, path: Path):
         f"Street-Simple: {payload['street_simple']}",
         "",
         f"Desk-Deep: {payload['desk_deep']}",
+        "",
+        "Company Snapshot:",
+        f"- Price: {_fmt_usd(payload.get('snapshot', {}).get('price'))}",
+        f"- Market cap: {_fmt_usd(payload.get('snapshot', {}).get('market_cap'))}",
+        f"- Sales growth (YoY): {_fmt_pct(payload.get('snapshot', {}).get('revenue_ttm_yoy_pct'))}",
+        f"- Free cash flow (TTM): {_fmt_usd(payload.get('snapshot', {}).get('fcf_ttm'))}",
+        f"- FCF margin: {_fmt_pct(payload.get('snapshot', {}).get('fcf_margin_ttm_pct'))}",
+        f"- News shock (30d): {payload.get('snapshot', {}).get('news_shock_30d')}",
+        "",
+        "Quick Health Read:",
+        f"- Growth signal: {payload.get('signals', {}).get('growth', 'Unknown')}",
+        f"- Cash quality signal: {payload.get('signals', {}).get('cash_quality', 'Unknown')}",
+        f"- Risk temperature: {payload.get('signals', {}).get('risk_temperature', 'Unknown')}",
+        f"- Stormbreaker: {payload.get('stormbreaker', {}).get('pass', 0)} pass / {payload.get('stormbreaker', {}).get('fail', 0)} fail / {payload.get('stormbreaker', {}).get('unknown', 0)} unknown",
+        "",
+        "Aha Mode (Apples-to-Apples Rules):",
+        "- Sales growth: Good if >= 12%, Mixed if 4% to < 12%, Weak if < 4%",
+        "- FCF margin: Good if >= 12%, Mixed if 5% to < 12%, Weak if < 5%",
+        "- News shock: Calm if >= 20, Mixed if 0 to < 20, Stressed if < 0",
+        "- Same thresholds are applied to every ticker for fair comparisons.",
     ]
 
     if canvas is not None and letter is not None:
@@ -147,7 +309,7 @@ def _write_pdf(payload: dict, path: Path):
     y = 760
     content = ["BT", "/F1 11 Tf"]
     for line in lines:
-        content.append(f"40 {y} Td ({_esc(str(line)[:120])}) Tj")
+        content.append(f"1 0 0 1 40 {y} Tm ({_esc(str(line)[:120])}) Tj")
         y -= 14
         if y < 40:
             break

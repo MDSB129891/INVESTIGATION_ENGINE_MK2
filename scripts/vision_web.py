@@ -6,6 +6,7 @@ import html
 import os
 import shlex
 import subprocess
+import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, quote, unquote
@@ -13,8 +14,36 @@ from urllib.parse import parse_qs, quote, unquote
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def _python_ge_311(py: str) -> bool:
+    try:
+        p = subprocess.run(
+            [py, "-c", "import sys; raise SystemExit(0 if sys.version_info >= (3,11) else 1)"],
+            cwd=str(ROOT),
+            capture_output=True,
+            text=True,
+        )
+        return p.returncode == 0
+    except Exception:
+        return False
+
+
+def _select_python() -> str:
+    env_py = os.environ.get("PYTHON", "").strip()
+    candidates = []
+    if env_py:
+        candidates.append(env_py)
+    venv_py = ROOT / ".venv" / "bin" / "python"
+    if venv_py.exists():
+        candidates.append(str(venv_py))
+    candidates += ["python3.14", "python3.13", "python3.12", "python3.11", "python3"]
+    for c in candidates:
+        if _python_ge_311(c):
+            return c
+    return "python3"
+
+
 def _run_vision(ticker: str, thesis: str, peers: str, strict: bool) -> tuple[int, str]:
-    py = os.environ.get("PYTHON", "python3")
+    py = _select_python()
     cmd = [py, str(ROOT / "scripts" / "vision.py"), ticker, thesis]
     if peers.strip():
         cmd += ["--peers", peers.strip()]
@@ -82,9 +111,9 @@ class Handler(BaseHTTPRequestHandler):
         form = """
 <div class="card">
   <form method="POST" action="/run">
-    <label>Ticker</label><input name="ticker" value="GM"/>
-    <label>Thesis</label><textarea name="thesis" rows="4">GM is going to increase in value due to its pivot to EV and hybrid vehicles.</textarea>
-    <label>Peers (optional, comma-separated)</label><input name="peers" value="F,TM"/>
+    <label>Ticker</label><input name="ticker" value="" placeholder="e.g. GOOGL"/>
+    <label>Thesis</label><textarea name="thesis" rows="4" placeholder="e.g. AI demand can support revenue and margin expansion over the next 6-12 months."></textarea>
+    <label>Peers (optional, comma-separated)</label><input name="peers" value="" placeholder="e.g. MSFT,AMZN"/>
     <label><input type="checkbox" name="strict" checked/> Strict mode</label><br/><br/>
     <button type="submit">Run Vision</button>
   </form>
@@ -112,7 +141,9 @@ class Handler(BaseHTTPRequestHandler):
         safe_out = html.escape(out[-30000:])
         canon = ROOT / "export" / f"CANON_{ticker}"
         hud_rel = f"export/CANON_{ticker}/{ticker}_IRONMAN_HUD.html"
+        ns_rel = f"export/CANON_{ticker}/{ticker}_NEWS_SOURCES.html"
         il_rel = f"outputs/iron_legion_command_{ticker}.html"
+        sb_rel = f"export/CANON_{ticker}/{ticker}_STORMBREAKER.html"
         mr_rel = f"outputs/mission_report_{ticker}.html"
         pi_rel = f"outputs/pipeline_integrity_{ticker}.json"
         body = f"""
@@ -122,6 +153,8 @@ class Handler(BaseHTTPRequestHandler):
   <div style="margin-top:8px;">Open outputs:</div>
   <ul>
     <li><a href="/artifact?path={quote(hud_rel)}">{ticker}_IRONMAN_HUD.html</a></li>
+    <li><a href="/artifact?path={quote(ns_rel)}">{ticker}_NEWS_SOURCES.html</a></li>
+    <li><a href="/artifact?path={quote(sb_rel)}">{ticker}_STORMBREAKER.html</a></li>
     <li><a href="/artifact?path={quote(il_rel)}">iron_legion_command_{ticker}.html</a></li>
     <li><a href="/artifact?path={quote(mr_rel)}">mission_report_{ticker}.html</a></li>
     <li><a href="/artifact?path={quote(pi_rel)}">pipeline_integrity_{ticker}.json</a></li>
@@ -135,6 +168,8 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
+    if sys.version_info < (3, 11):
+        print("WARNING: vision_web.py is running on Python < 3.11. It will invoke a 3.11+ interpreter if available.")
     ap = argparse.ArgumentParser()
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8765)

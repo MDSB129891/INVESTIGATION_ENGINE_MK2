@@ -6,6 +6,7 @@ import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Tuple
+import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "outputs"
@@ -67,6 +68,96 @@ def _safe_float(v):
         return None
 
 
+def _load_snapshot_row(ticker: str) -> Dict:
+    p = ROOT / "data" / "processed" / "comps_snapshot.csv"
+    try:
+        df = pd.read_csv(p)
+    except Exception:
+        return {}
+    tcol = "ticker" if "ticker" in df.columns else ("symbol" if "symbol" in df.columns else None)
+    if not tcol:
+        return {}
+    df[tcol] = df[tcol].astype(str).str.upper()
+    r = df[df[tcol] == ticker.upper()]
+    if r.empty:
+        return {}
+    try:
+        return r.iloc[0].to_dict()
+    except Exception:
+        return {}
+
+
+def _aha_rows(signals: Dict) -> List[Dict[str, str]]:
+    def zone_high_good(v, good, ok):
+        x = _safe_float(v)
+        if x is None:
+            return "Unknown"
+        if x >= good:
+            return "Good"
+        if x >= ok:
+            return "Okay"
+        return "Weak"
+
+    def zone_low_good(v, good, ok):
+        x = _safe_float(v)
+        if x is None:
+            return "Unknown"
+        if x <= good:
+            return "Good"
+        if x <= ok:
+            return "Okay"
+        return "Weak"
+
+    def fmt(v, mode):
+        x = _safe_float(v)
+        if x is None:
+            return "—"
+        if mode == "pct":
+            return f"{x:.2f}%"
+        if mode == "x":
+            return f"{x:.2f}x"
+        return f"{x:.2f}"
+
+    rows = [
+        {
+            "metric": "Sales Growth (YoY)",
+            "value": fmt(signals.get("revenue_yoy_pct"), "pct"),
+            "zone": zone_high_good(signals.get("revenue_yoy_pct"), 12, 4),
+            "rule": "Good >= 12% | Okay 4% to < 12%",
+            "meaning": "Shows demand momentum.",
+        },
+        {
+            "metric": "FCF Margin",
+            "value": fmt(signals.get("fcf_margin_ttm_pct"), "pct"),
+            "zone": zone_high_good(signals.get("fcf_margin_ttm_pct"), 12, 5),
+            "rule": "Good >= 12% | Okay 5% to < 12%",
+            "meaning": "Shows cash efficiency.",
+        },
+        {
+            "metric": "News Shock (30d)",
+            "value": fmt(signals.get("news_shock_30d"), "num"),
+            "zone": zone_high_good(signals.get("news_shock_30d"), 20, 0),
+            "rule": "Good >= 20 | Okay 0 to < 20",
+            "meaning": "Lower values mean headline stress.",
+        },
+        {
+            "metric": "Risk Total (30d)",
+            "value": fmt(signals.get("risk_total_30d"), "num"),
+            "zone": zone_low_good(signals.get("risk_total_30d"), 2, 5),
+            "rule": "Good <= 2 | Okay > 2 to 5",
+            "meaning": "Counts negative risk-tag headlines.",
+        },
+        {
+            "metric": "Net Debt / FCF",
+            "value": fmt(signals.get("net_debt_to_fcf_ttm"), "x"),
+            "zone": zone_low_good(signals.get("net_debt_to_fcf_ttm"), 2, 4),
+            "rule": "Good <= 2.0x | Okay > 2.0x to 4.0x",
+            "meaning": "Debt load relative to cash generation.",
+        },
+    ]
+    return rows
+
+
 def _load_ticker_payload(ticker: str) -> Dict:
     t = ticker.upper()
     ds = _read_json(OUT / f"decision_summary_{t}.json", {}) or {}
@@ -75,6 +166,7 @@ def _load_ticker_payload(ticker: str) -> Dict:
     metric_prov = _read_json(OUT / f"metric_provider_used_{t}.json", {}) or {}
     mc = _read_json(ROOT / "export" / f"CANON_{t}" / f"{t}_MONTECARLO.json", {}) or {}
     core = _read_json(ROOT / "export" / f"CANON_{t}" / f"{t}_DECISION_CORE.json", {}) or {}
+    snap = _load_snapshot_row(t)
     return {
         "ticker": t,
         "ds": ds,
@@ -83,6 +175,7 @@ def _load_ticker_payload(ticker: str) -> Dict:
         "metric_provider": metric_prov.get("metric_provider_used", {}),
         "mc": mc,
         "core": core,
+        "snapshot": snap,
     }
 
 
@@ -159,6 +252,19 @@ def _row_for_ticker(payload: Dict, review_date: str) -> Dict:
     conviction = _clamp(conviction_raw - penalty, 0.0, 100.0)
 
     action = _action_from_rating(rating, conviction)
+    freshness_passed = bool(((ds.get("freshness_sla") or {}).get("passed", False)))
+    governor_gates = {
+        "reliability_gate": float(reliability["score"]) >= 75.0,
+        "conviction_gate": conviction >= 60.0,
+        "thesis_fail_gate": fail_n == 0,
+        "data_stability_gate": len(refresh_warnings) <= 4,
+        "metric_completeness_gate": len(reliability.get("missing_metrics", [])) == 0,
+        "freshness_gate": freshness_passed,
+        "mc_quality_gate": not mc_fallback,
+    }
+    governor_override = not all(governor_gates.values())
+    if governor_override:
+        action = "HOLD FIRE"
     px = _price(payload)
     low, high = _entry_band(payload)
     regime = "Risk-On" if conviction >= 70 else ("Neutral" if conviction >= 55 else "Risk-Off")
@@ -170,12 +276,28 @@ def _row_for_ticker(payload: Dict, review_date: str) -> Dict:
         pos = round(min(4.0, max(0.75, conviction / 24.0)) * (float(reliability["score"]) / 100.0), 2)
 
     risk = payload.get("risk") or {}
+    snap = payload.get("snapshot") or {}
     core_metrics = ((payload.get("core") or {}).get("metrics") or {})
     revenue_yoy = _safe_float(payload.get("metric_provider", {}).get("revenue_ttm_yoy_pct", {}).get("value"))
+    if revenue_yoy is None:
+        revenue_yoy = _safe_float(snap.get("revenue_ttm_yoy_pct"))
     fcf_margin = _safe_float(payload.get("metric_provider", {}).get("fcf_margin_ttm_pct", {}).get("value"))
+    if fcf_margin is None:
+        fcf_margin = _safe_float(snap.get("fcf_margin_ttm_pct"))
     news_shock = _safe_float(risk.get("news_shock_30d"))
     risk_total = _safe_float(risk.get("risk_total_30d"))
+    if risk_total is None:
+        parts = [
+            _safe_float(risk.get("risk_labor_neg_30d")) or 0.0,
+            _safe_float(risk.get("risk_regulatory_neg_30d")) or 0.0,
+            _safe_float(risk.get("risk_insurance_neg_30d")) or 0.0,
+            _safe_float(risk.get("risk_safety_neg_30d")) or 0.0,
+            _safe_float(risk.get("risk_competition_neg_30d")) or 0.0,
+        ]
+        risk_total = sum(parts)
     nd_to_fcf = _safe_float(core_metrics.get("net_debt_to_fcf_ttm"))
+    if nd_to_fcf is None:
+        nd_to_fcf = _safe_float(snap.get("net_debt_to_fcf_ttm"))
 
     triggers = [
         "Revenue growth drops below 5% for 2 consecutive quarters.",
@@ -188,15 +310,22 @@ def _row_for_ticker(payload: Dict, review_date: str) -> Dict:
         f"Raw score {conviction_raw:.1f} adjusted to {conviction:.1f} after data-quality checks. "
         f"Thesis tests: {pass_n} pass, {fail_n} fail, {unknown_n} unknown."
     )
+    if governor_override:
+        public_explain += " Governor overrode action to HOLD FIRE until trust gates pass."
     pro_explain = (
         f"AdjConv={conviction_raw:.1f} - penalties({penalty:.1f}) with components: "
         f"reliability={reliability['score']:.1f}, warnings={len(refresh_warnings)}, "
         f"stormbreaker_fail={fail_n}, stormbreaker_unknown={unknown_n}, mc_fallback={mc_fallback}."
     )
+    if governor_override:
+        pro_explain += f" Governor gates={governor_gates}."
 
     return {
         "ticker": payload["ticker"],
         "action": action,
+        "governor_override": governor_override,
+        "governor_action": action,
+        "governor_gates": governor_gates,
         "conviction_score": round(conviction, 1),
         "conviction_raw_score": round(conviction_raw, 1),
         "conviction_penalty": round(penalty, 1),
@@ -230,7 +359,31 @@ def _row_for_ticker(payload: Dict, review_date: str) -> Dict:
 def _render_html(data: Dict) -> str:
     focus = data["focus"]
     rows = data["legion_table"]
+    trust_pass = not bool(focus.get("governor_override"))
+    trust_badge = "<span class='tone good'>TRUST PASS</span>" if trust_pass else "<span class='tone bad'>TRUST FAIL</span>"
+    signals = focus.get("current_signals", {}) or {}
+    aha = _aha_rows(signals)
+    zone_cls = {"Good": "good", "Okay": "ok", "Weak": "bad", "Unknown": "neutral"}
+    aha_html = "".join(
+        "<tr>"
+        f"<td>{r['metric']}</td>"
+        f"<td>{r['value']}</td>"
+        f"<td><span class='tone {zone_cls.get(r['zone'], 'neutral')}'>{r['zone']}</span></td>"
+        f"<td>{r['rule']}</td>"
+        f"<td>{r['meaning']}</td>"
+        "</tr>"
+        for r in aha
+    )
     focus_price = _fmt_money(focus.get("price_text")) if focus.get("price_text") != "—" else "—"
+    governor_banner = ""
+    if focus.get("governor_override"):
+        governor_banner = (
+            "<div class='card' style='border-color:#6a2f2f;background:#24171b'>"
+            "<div class='k'>Trust Governor Override</div>"
+            "<div><b>Action forced to HOLD FIRE</b> until trust gates pass.</div>"
+            f"<div style='margin-top:6px'>Gates: {focus.get('governor_gates', {})}</div>"
+            "</div>"
+        )
     tr_html = []
     for r in rows:
         tr_html.append(
@@ -252,12 +405,20 @@ body{{font-family:ui-sans-serif,system-ui;background:#0a0f18;color:#e9eef9;margi
 .k{{color:#99a9c8;font-size:12px;text-transform:uppercase;letter-spacing:.08em}}
 table{{width:100%;border-collapse:collapse}}th,td{{padding:8px;border-bottom:1px solid #223047;text-align:left}}
 th{{color:#9db0ce;font-size:12px;text-transform:uppercase}}
+.tone{{font-size:11px;border-radius:999px;padding:3px 8px;border:1px solid transparent}}
+.tone.good{{color:#23d18b;border-color:rgba(35,209,139,.35);background:rgba(35,209,139,.08)}}
+.tone.ok{{color:#f4c267;border-color:rgba(244,194,103,.35);background:rgba(244,194,103,.08)}}
+.tone.bad{{color:#ff7b7b;border-color:rgba(255,123,123,.35);background:rgba(255,123,123,.08)}}
+.tone.neutral{{color:#9cb1d0;border-color:rgba(156,177,208,.35);background:rgba(156,177,208,.08)}}
 </style></head><body>
 <div class="card"><div class="k">Iron Legion Command</div>
 <h2 style="margin:8px 0 4px 0;">{focus['ticker']} · {focus['action']}</h2>
 <div>Conviction: {focus['conviction_score']:.1f} (raw {focus.get('conviction_raw_score', focus['conviction_score']):.1f}, penalty {focus.get('conviction_penalty', 0.0):.1f}) · Reliability: {focus['reliability_grade']} ({focus['reliability_score']:.1f}) · Max position: {focus['position_size_pct']:.2f}%</div>
 <div>Entry band: {focus['entry_band_text']} · Current price: {focus_price} · Next review: {focus['next_review']}</div>
+<div style="margin-top:6px;"><a href="../export/CANON_{focus['ticker']}/{focus['ticker']}_NEWS_SOURCES.html">Open News Sources tab</a></div>
 </div>
+<div class='card'><div class='k'>Trust Gate</div><div>{trust_badge}</div></div>
+{governor_banner}
 <div class="card"><div class="k">Street-Simple (General Audience)</div>
 <div>{focus.get('explain_public','')}</div></div>
 <div class="card"><div class="k">Desk-Deep (Finance Audience)</div>
@@ -273,6 +434,11 @@ th{{color:#9db0ce;font-size:12px;text-transform:uppercase}}
 <div><b>Reliability</b> tells how trustworthy the inputs are in this run.</div>
 <div><b>Max position</b> is a risk cap, not a required allocation.</div>
 <div><b>HOLD FIRE</b> means wait; <b>TRACK</b> means monitor; <b>DEPLOY</b> means candidate buy setup.</div>
+</div>
+<div class="card"><div class="k">Aha Mode: Apples-to-Apples Scoreboard</div>
+<div style="margin:6px 0 8px 0;color:#b8c8e6;">Same rules every ticker, so non-finance users can compare quickly.</div>
+<table><thead><tr><th>Metric</th><th>Your Number</th><th>Zone</th><th>Rule</th><th>What It Means</th></tr></thead>
+<tbody>{aha_html}</tbody></table>
 </div>
 </body></html>"""
 
@@ -312,6 +478,9 @@ def main(focus: str):
     focus_block = {
         "ticker": focus,
         "action": focus_row["action"],
+        "governor_override": focus_row.get("governor_override", False),
+        "governor_action": focus_row.get("governor_action", focus_row["action"]),
+        "governor_gates": focus_row.get("governor_gates", {}),
         "conviction_score": focus_row["conviction_score"],
         "conviction_raw_score": focus_row.get("conviction_raw_score", focus_row["conviction_score"]),
         "conviction_penalty": focus_row.get("conviction_penalty", 0.0),
@@ -323,6 +492,7 @@ def main(focus: str):
         "stop_text": _fmt_money(focus_row["discipline"]["soft_stop_trigger"]) if focus_row["discipline"]["soft_stop_trigger"] is not None else "—",
         "next_review": review_date,
         "triggers": focus_row["discipline"]["thesis_break_triggers"],
+        "current_signals": focus_row["discipline"]["current_signals"],
         "reliability_details": focus_row["reliability_details"],
         "thesis_test_counts": focus_row.get("thesis_test_counts", {}),
         "explain_public": focus_row.get("explain_public", ""),

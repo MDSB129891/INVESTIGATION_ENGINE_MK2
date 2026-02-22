@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json, random
+import json, random, math
 from pathlib import Path
 from datetime import datetime
 
@@ -10,6 +10,17 @@ def load_json(p: Path, default=None):
         return json.loads(p.read_text(encoding="utf-8"))
     except Exception:
         return default
+
+
+def _num(x):
+    try:
+        v = float(x)
+        if math.isnan(v) or math.isinf(v):
+            return None
+        return v
+    except Exception:
+        return None
+
 
 def main(ticker: str, n: int = 20000, seed: int = 7):
     random.seed(seed)
@@ -24,19 +35,21 @@ def main(ticker: str, n: int = 20000, seed: int = 7):
     core = load_json(core_path, {})
 
     metrics = (core.get("metrics") or {}) if isinstance(core, dict) else {}
-    price = metrics.get("price_used")
+    price = _num(metrics.get("price_used"))
 
     # Try multiple shapes for bear/base/bull
-    bear = dcf.get("bear") if isinstance(dcf, dict) else None
-    base = dcf.get("base") if isinstance(dcf, dict) else None
-    bull = dcf.get("bull") if isinstance(dcf, dict) else None
+    bear = _num(dcf.get("bear")) if isinstance(dcf, dict) else None
+    base = _num(dcf.get("base")) if isinstance(dcf, dict) else None
+    bull = _num(dcf.get("bull")) if isinstance(dcf, dict) else None
 
-    bear = bear if bear is not None else metrics.get("bear_price")
-    base = base if base is not None else metrics.get("base_price")
-    bull = bull if bull is not None else metrics.get("bull_price")
+    bear = bear if bear is not None else _num(metrics.get("bear_price"))
+    base = base if base is not None else _num(metrics.get("base_price"))
+    bull = bull if bull is not None else _num(metrics.get("bull_price"))
 
     fallback_used = False
     fallback_reason = None
+    cone_source = "dcf_or_decision_core"
+    price_source = "decision_core"
     if any(v is None for v in (bear, base, bull)):
         # Fallback mode: create a synthetic cone around current price.
         # Keep this explicit in output so users know it's a resilience mode.
@@ -50,22 +63,55 @@ def main(ticker: str, n: int = 20000, seed: int = 7):
                     df["ticker"] = df["ticker"].astype(str).str.upper()
                     r = df[df["ticker"] == T]
                     if not r.empty:
-                        price = float(r.iloc[0].get("price"))
+                        price = _num(r.iloc[0].get("price"))
+                        if price not in (None, 0):
+                            price_source = "comps_snapshot"
             except Exception:
                 pass
 
         if price in (None, 0):
-            raise SystemExit(
-                f"❌ Missing bear/base/bull and no usable price fallback for {T}. "
-                f"Need {dcf_path} and/or {core_path}, or comps snapshot with price."
-            )
+            # Try live quote as a second fallback.
+            try:
+                import os
+                import requests
 
-        price = float(price)
+                key = (os.getenv("FMP_API_KEY") or "").strip()
+                if key:
+                    url = "https://financialmodelingprep.com/stable/quote"
+                    r = requests.get(url, params={"symbol": T, "apikey": key}, timeout=12)
+                    if 200 <= r.status_code < 300:
+                        arr = r.json() or []
+                        if isinstance(arr, list) and arr:
+                            price = _num((arr[0] or {}).get("price"))
+                            if price not in (None, 0):
+                                price_source = "fmp_live_quote"
+            except Exception:
+                pass
+
+        if price in (None, 0):
+            # Last-resort anchor: keep pipeline operational for any ticker.
+            price = 100.0
+            fallback_reason = "missing_dcf_and_price_used_default_anchor"
+            price_source = "default_anchor"
+
+        price = _num(price) or 100.0
         bear = price * 0.80
         base = price * 1.00
         bull = price * 1.35
         fallback_used = True
-        fallback_reason = "missing_dcf_cone_price_anchored"
+        if fallback_reason is None:
+            fallback_reason = "missing_dcf_cone_price_anchored"
+        cone_source = "synthetic_from_price"
+
+    confidence_grade = "HIGH"
+    confidence_reason = "Monte Carlo uses explicit valuation cone with market price context."
+    if fallback_used:
+        if price_source == "default_anchor":
+            confidence_grade = "LOW"
+            confidence_reason = "Synthetic cone used with default price anchor due to missing live inputs."
+        else:
+            confidence_grade = "MEDIUM"
+            confidence_reason = "Synthetic cone used from price anchor because DCF cone was unavailable."
 
     a = float(min(bear, base, bull))
     b = float(max(bear, base, bull))
@@ -108,6 +154,15 @@ def main(ticker: str, n: int = 20000, seed: int = 7):
         "results": {
             "fallback_used": fallback_used,
             "fallback_reason": fallback_reason,
+            "confidence_grade": confidence_grade,
+            "confidence_reason": confidence_reason,
+            "cone_source": cone_source,
+            "price_source": price_source,
+            "p10": float(p10),
+            "p50": float(p50),
+            "p90": float(p90),
+            "prob_down_20pct": prob_down_20,
+            "prob_up_20pct": prob_up_20,
         },
     }
 

@@ -3,6 +3,9 @@ import argparse, json
 from datetime import datetime, timezone
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+
+
 def now_utc():
     return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
@@ -12,6 +15,83 @@ def normalize_text(s: str) -> str:
 def keyword_match(text: str, keywords):
     t = (text or "").lower()
     return any(k in t for k in keywords)
+
+
+def _load_company_intel_sector(ticker: str) -> str:
+    p = ROOT / "outputs" / f"company_intel_{ticker.upper()}.json"
+    try:
+        if p.exists():
+            j = json.loads(p.read_text(encoding="utf-8"))
+            company = j.get("company", {}) if isinstance(j, dict) else {}
+            sector = str(company.get("sector") or "").strip()
+            industry = str(company.get("industry") or "").strip()
+            return f"{sector} {industry}".strip().lower()
+    except Exception:
+        pass
+    return ""
+
+
+def _detect_profile(ticker: str, thesis_text: str) -> str:
+    text = f"{thesis_text} {_load_company_intel_sector(ticker)}".lower()
+    if keyword_match(text, ["bank", "banks", "financial", "insurance", "asset manager", "broker", "lender", "credit"]):
+        return "financial"
+    if keyword_match(text, ["utility", "utilities", "telecom", "defensive", "consumer staples", "pipeline"]):
+        return "defensive"
+    if keyword_match(text, ["biotech", "pharma", "semiconductor", "ai", "cloud", "software", "internet", "growth"]):
+        return "growth"
+    if keyword_match(text, ["energy", "oil", "gas", "mining", "materials"]):
+        return "cyclical_commodity"
+    return "balanced"
+
+
+def _profile_thresholds(profile: str) -> dict:
+    # Industry-aware defaults so one-size-fits-all does not penalize entire sectors.
+    if profile == "financial":
+        return {
+            "rev_yoy_min": 4.0,
+            "fcf_positive_min": 0.0,
+            "fcf_margin_min": 2.0,
+            "fcf_yield_min": 2.0,
+            "news_shock_min": -25.0,
+            "risk_tag_max": 5,
+        }
+    if profile == "defensive":
+        return {
+            "rev_yoy_min": 3.0,
+            "fcf_positive_min": 0.0,
+            "fcf_margin_min": 4.0,
+            "fcf_yield_min": 2.5,
+            "news_shock_min": -22.0,
+            "risk_tag_max": 4,
+        }
+    if profile == "growth":
+        return {
+            "rev_yoy_min": 10.0,
+            "fcf_positive_min": 0.0,
+            "fcf_margin_min": 0.0,
+            "fcf_yield_min": 1.0,
+            "news_shock_min": -18.0,
+            "risk_tag_max": 3,
+        }
+    if profile == "cyclical_commodity":
+        return {
+            "rev_yoy_min": 5.0,
+            "fcf_positive_min": 0.0,
+            "fcf_margin_min": 3.0,
+            "fcf_yield_min": 2.0,
+            "news_shock_min": -24.0,
+            "risk_tag_max": 5,
+        }
+    # balanced default
+    return {
+        "rev_yoy_min": 8.0,
+        "fcf_positive_min": 0.0,
+        "fcf_margin_min": 5.0,
+        "fcf_yield_min": 3.0,
+        "news_shock_min": -20.0,
+        "risk_tag_max": 3,
+    }
+
 
 def build_template_claims(ticker: str, thesis_text: str):
     """
@@ -23,28 +103,30 @@ def build_template_claims(ticker: str, thesis_text: str):
     - latest_net_debt_to_fcf (if available in your metric lookup pipeline)
     """
     t = thesis_text.lower()
+    profile = _detect_profile(ticker, thesis_text)
+    th = _profile_thresholds(profile)
 
     # Base "always-on" sanity claims (good business health)
     claims = [
-        {"id": "c1", "metric": "latest_revenue_yoy_pct", "operator": ">=", "threshold": 8.0,
+        {"id": "c1", "metric": "latest_revenue_yoy_pct", "operator": ">=", "threshold": th["rev_yoy_min"],
          "rationale": "Growth should stay positive in the base case."},
-        {"id": "c2", "metric": "latest_free_cash_flow", "operator": ">", "threshold": 0.0,
+        {"id": "c2", "metric": "latest_free_cash_flow", "operator": ">", "threshold": th["fcf_positive_min"],
          "rationale": "Business should produce positive free cash flow."},
-        {"id": "c3", "metric": "latest_fcf_margin_pct", "operator": ">=", "threshold": 5.0,
+        {"id": "c3", "metric": "latest_fcf_margin_pct", "operator": ">=", "threshold": th["fcf_margin_min"],
          "rationale": "Cash efficiency shouldn't collapse."},
-        {"id": "c4", "metric": "fcf_yield_pct", "operator": ">=", "threshold": 3.0,
+        {"id": "c4", "metric": "fcf_yield_pct", "operator": ">=", "threshold": th["fcf_yield_min"],
          "rationale": "Valuation should not be extremely stretched versus cash generation."},
     ]
 
     # Risk/news claims (default gentle guardrails)
     claims += [
-        {"id": "c5", "metric": "news_shock_30d", "operator": ">=", "threshold": -20.0,
+        {"id": "c5", "metric": "news_shock_30d", "operator": ">=", "threshold": th["news_shock_min"],
          "rationale": "Avoid severe negative headline shock over the last 30 days."},
-        {"id": "c6", "metric": "risk_regulatory_neg_30d", "operator": "<=", "threshold": 3,
+        {"id": "c6", "metric": "risk_regulatory_neg_30d", "operator": "<=", "threshold": th["risk_tag_max"],
          "rationale": "Regulatory pressure should not spike in the last 30 days."},
-        {"id": "c7", "metric": "risk_insurance_neg_30d", "operator": "<=", "threshold": 3,
+        {"id": "c7", "metric": "risk_insurance_neg_30d", "operator": "<=", "threshold": th["risk_tag_max"],
          "rationale": "Insurance-related negative headlines should not spike in the last 30 days."},
-        {"id": "c8", "metric": "risk_labor_neg_30d", "operator": "<=", "threshold": 3,
+        {"id": "c8", "metric": "risk_labor_neg_30d", "operator": "<=", "threshold": th["risk_tag_max"],
          "rationale": "Labor-related negative headlines should not spike in the last 30 days."},
     ]
 
@@ -77,7 +159,7 @@ def build_template_claims(ticker: str, thesis_text: str):
             "note": "Informational claim: set a threshold if you want an automatic PASS/FAIL."
         })
 
-    return claims
+    return claims, profile, th
 
 def main():
     ap = argparse.ArgumentParser()
@@ -92,13 +174,17 @@ def main():
     out_path = Path(args.out) if args.out else Path(f"theses/{T}_thesis_custom.json")
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
+    claims, profile, thresholds = build_template_claims(T, thesis_text)
+
     payload = {
         "ticker": T,
         "name": f"{T}: Custom thesis",
         "headline": f"{T}: {thesis_text[:120]}{'...' if len(thesis_text) > 120 else ''}",
         "description": thesis_text,
         "generated_utc": now_utc(),
-        "claims": build_template_claims(T, thesis_text),
+        "profile": profile,
+        "profile_thresholds": thresholds,
+        "claims": claims,
     }
 
     out_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")

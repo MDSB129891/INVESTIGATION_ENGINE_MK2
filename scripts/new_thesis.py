@@ -122,7 +122,7 @@ def build_thesis(
 
 
 def interactive_mode(ticker_arg: str | None, thesis_text_arg: str | None, out_path: str | None) -> Path:
-    ticker = _prompt("Ticker", (ticker_arg or "UBER").upper())
+    ticker = _prompt("Ticker", (ticker_arg or "AAPL").upper())
     thesis_text = _prompt("One-paragraph thesis description", thesis_text_arg or "")
 
     default_name = f"{ticker}: Thesis"

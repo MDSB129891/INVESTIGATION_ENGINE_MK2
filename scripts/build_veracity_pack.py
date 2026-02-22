@@ -133,7 +133,7 @@ def main(ticker: str):
     ticker = ticker.upper()
     news = read_csv(DATA / "news_unified.csv")
     if news.empty:
-        raise FileNotFoundError("Missing data/processed/news_unified.csv — run run_uber_update.py first")
+        raise FileNotFoundError("Missing data/processed/news_unified.csv — run run_arc_reactor_update.py first")
 
     # Filter ticker
     if "ticker" in news.columns:
@@ -209,6 +209,6 @@ def main(ticker: str):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--ticker", default="UBER")
+    ap.add_argument("--ticker", default="AAPL")
     args = ap.parse_args()
     main(args.ticker)

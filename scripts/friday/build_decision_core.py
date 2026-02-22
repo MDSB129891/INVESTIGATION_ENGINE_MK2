@@ -110,7 +110,7 @@ def _unit_for_key(schema: dict, k: str) -> str:
 
 def _fmt_by_unit(unit: str, v):
     if v is None:
-        return "N/A"
+        return "—"
     try:
         fv = float(v)
     except Exception:
@@ -221,27 +221,53 @@ def main(ticker: str):
 <head>
 <meta charset="utf-8">
 <title>{T} — DECISION CORE</title>
+<style>
+body{{margin:0;font-family:ui-sans-serif,system-ui;background:#0f1524;color:#ecf3ff}}
+.wrap{{max-width:1050px;margin:0 auto;padding:22px}}
+.card{{background:#13203a;border:1px solid #264061;border-radius:12px;padding:14px;margin-bottom:12px}}
+.k{{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#9db6da}}
+table{{width:100%;border-collapse:collapse}}
+th,td{{border-bottom:1px solid #243a59;padding:8px;text-align:left;font-size:14px}}
+th{{color:#9db6da;font-size:12px;text-transform:uppercase}}
+</style>
 </head>
-<body style="background:#000;color:#0f0;font-family:ui-monospace,Menlo,Monaco,Consolas,monospace;padding:18px;">
-  <h1 style="margin:0 0 10px 0;">{T} — DECISION CORE</h1>
-  <div style="opacity:.8;margin-bottom:12px;">Generated: {now}</div>
-
-  <h2 style="margin:14px 0 6px 0;">Metrics (unit-labeled)</h2>
-  <ul>
-    {"".join(li_rows)}
-  </ul>
-
-  <hr style="border:0;border-top:1px solid #0f0;opacity:.25;margin:16px 0;" />
-
-  <div style="font-size:14px;line-height:1.35;opacity:.9;">
-    <b>Plain-English:</b><br/>
-    • <b>FCF (TTM)</b> = cash the business kept over the last 12 months after expenses/investment.<br/>
-    • <b>FCF margin</b> = how much of revenue turns into free cash (higher is better).<br/>
-    • <b>FCF yield</b> = free cash return vs what the market is paying (higher can mean “cheaper”).<br/>
-    • <b>News shock</b> = headline tone/pressure score (lower/more negative = worse headlines).<br/>
-    • <b>Risk counts</b> = how many negative-risk headlines in each bucket (more = more heat).<br/>
-    • <b>DCF cone</b> = rough “fair value range” per share under bear/base/bull assumptions.<br/>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1 style="margin:0 0 6px 0;">{T} — Decision Core</h1>
+    <div>Generated: {now}</div>
+    <div style="margin-top:8px;">This page is the raw metric sheet behind the final recommendation.</div>
   </div>
+
+  <div class="card">
+    <div class="k">How to read this quickly</div>
+    <div style="margin-top:8px;">1) Check cash metrics (FCF, FCF margin, FCF yield).</div>
+    <div>2) Check risk pressure (news shock + risk counts).</div>
+    <div>3) Check valuation range (bear/base/bull).</div>
+  </div>
+
+  <div class="card">
+    <div class="k">Metrics (Unit-Labeled)</div>
+    <table>
+      <thead><tr><th>Metric</th><th>Unit</th><th>Value</th></tr></thead>
+      <tbody>
+        {"".join([f"<tr><td>{_label(k)}</td><td><code>{_unit_display(_unit_for_key(schema, k))}</code></td><td>{_fmt_by_unit(_unit_for_key(schema, k), metrics.get(k))}</td></tr>" for k in ordered_keys])}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="k">Glossary (Plain English)</div>
+    <div style="line-height:1.45;margin-top:8px;">
+      <b>FCF (TTM)</b>: cash the business kept over the last 12 months after expenses/investment.<br/>
+      <b>FCF margin</b>: how much of revenue turns into free cash (higher is better).<br/>
+      <b>FCF yield</b>: free cash return vs what the market is paying (higher can mean cheaper).<br/>
+      <b>News shock</b>: headline pressure score (more negative = worse narrative).<br/>
+      <b>Risk counts</b>: number of negative-risk headlines by category.<br/>
+      <b>DCF cone</b>: valuation range under bear/base/bull scenarios.
+    </div>
+  </div>
+</div>
 </body>
 </html>
 """

@@ -17,7 +17,7 @@ def _safe_float(x):
 
 def _fmt_usd(x):
     x = _safe_float(x)
-    if x is None: return "N/A"
+    if x is None: return "—"
     ax = abs(x)
     if ax >= 1e12: return f"${x/1e12:.2f}T"
     if ax >= 1e9:  return f"${x/1e9:.2f}B"
@@ -27,12 +27,12 @@ def _fmt_usd(x):
 
 def _fmt_pct(x, digits=2):
     x = _safe_float(x)
-    if x is None: return "N/A"
+    if x is None: return "—"
     return f"{x:.{digits}f}%"
 
 def _fmt_num(x):
     x = _safe_float(x)
-    if x is None: return "N/A"
+    if x is None: return "—"
     if abs(x) >= 1e9:  return f"{x/1e9:.2f}B"
     if abs(x) >= 1e6:  return f"{x/1e6:.2f}M"
     if abs(x) >= 1e3:  return f"{x/1e3:.2f}K"
@@ -98,7 +98,7 @@ def _html_table(title, subtitle, headers, rows, formatters):
             fmt = formatters[i] if i < len(formatters) else (lambda x: x)
             tds.append(f"<td>{fmt(cell)}</td>")
         body.append("<tr>" + "".join(tds) + "</tr>")
-    tbody = "\n".join(body) if body else '<tr><td colspan="99" style="opacity:.75">N/A</td></tr>'
+    tbody = "\n".join(body) if body else '<tr><td colspan="99" style="opacity:.75">—</td></tr>'
     return f"""
     <div class="card wide">
       <div class="k">{title}</div>

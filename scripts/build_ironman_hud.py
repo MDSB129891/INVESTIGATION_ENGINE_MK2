@@ -5,7 +5,7 @@ import pandas as pd
 import html
 
 def _missing(x):
-    return x is None or x == "N/A" or (isinstance(x, float) and x != x)
+    return x is None or x in {"N/A", "—"} or (isinstance(x, float) and x != x)
 
 
 from pathlib import Path
@@ -641,6 +641,15 @@ def main(ticker: str):
               else '<span class="tone good">Thesis checks passing</span>')
     )
 
+    # --- Iron Legion lens (public + pro explanations)
+    legion = _load_json(ROOT / "outputs" / f"iron_legion_command_{T}.json", {}) or {}
+    lfocus = legion.get("focus", {}) if isinstance(legion, dict) else {}
+    street_simple = str(lfocus.get("explain_public") or "Accuracy-adjusted conviction explanation unavailable.")
+    desk_deep = str(lfocus.get("explain_pro") or "Quant breakdown unavailable for this run.")
+    leg_raw = lfocus.get("conviction_raw_score")
+    leg_adj = lfocus.get("conviction_score")
+    leg_pen = lfocus.get("conviction_penalty")
+
 
 
 
@@ -844,6 +853,13 @@ a {{ color:#8fd3ff; text-decoration:none; }}
     </div>
 
     <div class="card span-12">
+      <div class="k">Dual Audience Lens (Street-Simple + Desk-Deep)</div>
+      <div class="row"><div>Accuracy-adjusted conviction</div><div><span class="pill">raw { _fmt_num(leg_raw) } -> adjusted { _fmt_num(leg_adj) } (penalty { _fmt_num(leg_pen) })</span></div></div>
+      <div class="small"><b>Street-Simple:</b> {htmlmod.escape(street_simple)}</div>
+      <div class="small"><b>Desk-Deep:</b> {htmlmod.escape(desk_deep)}</div>
+    </div>
+
+    <div class="card span-12">
       <div class="k">Ticker Lock (What You Are Viewing)</div>
       <div class="row"><div>Active ticker</div><div><span class="pill" style="font-weight:800;">{T}</span></div></div>
       <div class="small">Armor-themed labels are shown with plain-English meaning so any user can follow the decision path.</div>
@@ -974,6 +990,9 @@ a {{ color:#8fd3ff; text-decoration:none; }}
 </body>
 </html>
 """
+
+    # final sanitization: never show raw N/A in HUD
+    html = html.replace("N/A", "—")
 
     out = canon / f"{T}_IRONMAN_HUD.html"
     out.write_text(html, encoding="utf-8")

@@ -56,7 +56,7 @@
       "statement": "Regulatory risk stays low",
       "metric": "risk_regulatory_neg_30d",
       "operator": "<=",
-      "threshold": 4,
+      "threshold": 7,
       "weight": 1
     },
     {

@@ -362,7 +362,7 @@ def _build_markdown(ticker: str) -> str:
     lines.append("")
     lines.append("## Purpose")
     lines.append("This document explains how the engine calculates metrics, bucket scores, and the final rating.")
-    lines.append("Implementation reference: `scripts/run_uber_update.py`.")
+    lines.append("Implementation reference: `scripts/run_arc_reactor_update.py`.")
     lines.append("")
     lines.append("## Data Inputs")
     lines.append("- `data/processed/fundamentals_annual_history.csv`")

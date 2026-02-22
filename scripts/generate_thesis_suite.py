@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA_PROCESSED = ROOT / "data" / "processed"
 THESES = ROOT / "theses"
 
-DEFAULT_TICKER = "UBER"
+DEFAULT_TICKER = "AAPL"
 
 import argparse
 
@@ -253,4 +253,3 @@ if __name__ == "__main__":
     ap.add_argument("--ticker", default=DEFAULT_TICKER)
     args = ap.parse_args()
     main(args.ticker)
-

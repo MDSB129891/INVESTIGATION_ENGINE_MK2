@@ -1,0 +1,65 @@
+{
+  "ticker": "GM",
+  "name": "GM: Custom thesis",
+  "headline": "GM: GM is going to increase in value due to its pivot to the EV and Hybrid market",
+  "description": "GM is going to increase in value due to its pivot to the EV and Hybrid market",
+  "generated_utc": "2026-02-22 20:40 UTC",
+  "claims": [
+    {
+      "id": "c1",
+      "metric": "latest_revenue_yoy_pct",
+      "operator": ">=",
+      "threshold": 8.0,
+      "rationale": "Growth should stay positive in the base case."
+    },
+    {
+      "id": "c2",
+      "metric": "latest_free_cash_flow",
+      "operator": ">",
+      "threshold": 0.0,
+      "rationale": "Business should produce positive free cash flow."
+    },
+    {
+      "id": "c3",
+      "metric": "latest_fcf_margin_pct",
+      "operator": ">=",
+      "threshold": 5.0,
+      "rationale": "Cash efficiency shouldn't collapse."
+    },
+    {
+      "id": "c4",
+      "metric": "fcf_yield_pct",
+      "operator": ">=",
+      "threshold": 3.0,
+      "rationale": "Valuation should not be extremely stretched versus cash generation."
+    },
+    {
+      "id": "c5",
+      "metric": "news_shock_30d",
+      "operator": ">=",
+      "threshold": -20.0,
+      "rationale": "Avoid severe negative headline shock over the last 30 days."
+    },
+    {
+      "id": "c6",
+      "metric": "risk_regulatory_neg_30d",
+      "operator": "<=",
+      "threshold": 3,
+      "rationale": "Regulatory pressure should not spike in the last 30 days."
+    },
+    {
+      "id": "c7",
+      "metric": "risk_insurance_neg_30d",
+      "operator": "<=",
+      "threshold": 3,
+      "rationale": "Insurance-related negative headlines should not spike in the last 30 days."
+    },
+    {
+      "id": "c8",
+      "metric": "risk_labor_neg_30d",
+      "operator": "<=",
+      "threshold": 3,
+      "rationale": "Labor-related negative headlines should not spike in the last 30 days."
+    }
+  ]
+}

@@ -3,7 +3,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-TICKER="${1:-UBER}"
+TICKER="${1:-AAPL}"
 THESIS="${2:-}"
 
 echo "=== Running full pipeline for: ${TICKER} ==="
@@ -11,7 +11,7 @@ echo "Thesis override: ${THESIS:-<none>}"
 
 # Update engine for chosen ticker (and optional peers if you want them)
 export UNIVERSE="${TICKER},LYFT,DASH"
-python3 scripts/run_uber_update.py
+python3 scripts/run_arc_reactor_update.py
 
 python3 scripts/generate_thesis_suite.py --ticker "${TICKER}"
 python3 scripts/build_veracity_pack.py --ticker "${TICKER}"

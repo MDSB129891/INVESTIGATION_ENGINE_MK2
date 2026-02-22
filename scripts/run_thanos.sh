@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-TICKER="${1:-UBER}"
+TICKER="${1:-AAPL}"
 ACTIVE_THESIS="${2:-theses/${TICKER}_thesis_base.json}"
 
 echo "🟣 THANOS RUN: ${TICKER}"
@@ -16,7 +16,7 @@ echo "Thesis used: ${ACTIVE_THESIS}"
 export UNIVERSE="${UNIVERSE:-${TICKER},LYFT,DASH}"
 
 echo "=== 1) Engine update (financials + news) ==="
-python3 scripts/run_uber_update.py
+python3 scripts/run_arc_reactor_update.py
 
 # --- GALACTUS: force shared summary to match this ticker (prevents ticker mismatch) ---
 if [ -f "outputs/decision_summary_${TICKER}.json" ]; then
@@ -66,6 +66,14 @@ echo "=== 7) Time Stone (history view over time) ==="
 python3 scripts/build_timestone.py --ticker "$TICKER" || true
 
 python3 scripts/generate_dashboard.py --ticker "${TICKER}"
+
+echo ""
+echo "=== 8) Iron Legion Command ==="
+if [ -f "scripts/build_iron_legion.py" ]; then
+  python3 scripts/build_iron_legion.py --focus "${TICKER}" || true
+else
+  echo "⚠️ Iron Legion skipped: scripts/build_iron_legion.py missing"
+fi
 
 echo ""
 echo "DONE ✅ THANOS PACK:"
@@ -127,4 +135,3 @@ if [ -n "${THESIS_FOR_SUPER}" ]; then
 else
   echo "⚠️ SUPER+ skipped: no thesis file found (need ${BASE_THESIS} or THESIS_OVERRIDE)"
 fi
-

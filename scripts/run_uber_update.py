@@ -10,6 +10,8 @@ import json
 from dataclasses import dataclass
 from datetime import date
 from typing import Dict
+from urllib.parse import urlencode
+import requests
 
 import pandas as pd
 
@@ -26,10 +28,10 @@ from analytics.news.risk_dashboard import build_news_risk_dashboard
 from analytics.news.evidence import build_evidence_table, write_evidence_html
 
 # ---- Thanos-safe universe config (do not edit by hand) ----
-TICKER = os.getenv("TICKER", "UBER").strip().upper()
+TICKER = os.getenv("TICKER", "AAPL").strip().upper()
 PEERS = [s.strip().upper() for s in os.getenv("PEERS", "LYFT,DASH").split(",") if s.strip()]
 UNIVERSE = [TICKER] + [p for p in PEERS if p != TICKER]
-# Optional override: set UNIVERSE="UBER,LYFT,DASH" to fully control
+# Optional override: set UNIVERSE="AAPL,MSFT,GOOGL" to fully control
 UNIVERSE_ENV = os.getenv("UNIVERSE", "")
 if UNIVERSE_ENV.strip():
     UNIVERSE = [s.strip().upper() for s in UNIVERSE_ENV.split(",") if s.strip()]
@@ -109,6 +111,40 @@ def _rank_percentile(series: pd.Series, value: float, higher_is_better: bool = T
         return None
     pct = (s <= value).mean() * 100.0
     return pct if higher_is_better else 100.0 - pct
+
+
+def _redact_url(url: str) -> str:
+    if not isinstance(url, str):
+        return str(url)
+    for key in ("apikey=", "apiKey="):
+        i = url.find(key)
+        if i >= 0:
+            j = url.find("&", i)
+            if j == -1:
+                j = len(url)
+            url = url[: i + len(key)] + "***REDACTED***" + url[j:]
+    return url
+
+
+def _check_url(name: str, base_url: str, params: dict, timeout: int = 12) -> dict:
+    full = base_url + ("?" + urlencode(params) if params else "")
+    try:
+        r = requests.get(base_url, params=params, timeout=timeout)
+        return {
+            "name": name,
+            "url": _redact_url(full),
+            "ok": 200 <= r.status_code < 300,
+            "status_code": r.status_code,
+            "error": None,
+        }
+    except Exception as e:
+        return {
+            "name": name,
+            "url": _redact_url(full),
+            "ok": False,
+            "status_code": None,
+            "error": str(e),
+        }
 
 
 # ---------------------------
@@ -467,48 +503,104 @@ def write_ticker_json(outputs_dir, ticker: str, basename: str, obj: dict) -> str
 # ---------------------------
 def main():
     ensure_dirs()
+    refresh_warnings = []
+    fmp_key = (os.getenv("FMP_API_KEY") or "").strip()
+    massive_key = (os.getenv("MASSIVE_API_KEY") or os.getenv("POLYGON_API_KEY") or "").strip()
 
-    # Quotes
-    quotes = fetch_quotes(UNIVERSE)
-    write_csv(quotes, DATA_RAW / "quotes_universe_raw.csv")
+    if not massive_key:
+        refresh_warnings.append("Massive API key missing (set MASSIVE_API_KEY or POLYGON_API_KEY for provider preflight).")
 
-    # Fundamentals TTM per ticker
+    # Quotes (resilient)
+    quotes = pd.DataFrame()
+    try:
+        quotes = fetch_quotes(UNIVERSE)
+        if not quotes.empty:
+            write_csv(quotes, DATA_RAW / "quotes_universe_raw.csv")
+        else:
+            refresh_warnings.append("Quote pull returned zero rows.")
+    except Exception as e:
+        refresh_warnings.append(f"Primary quote pull failed: {e}")
+        q_cache = DATA_RAW / "quotes_universe_raw.csv"
+        if q_cache.exists():
+            try:
+                quotes = pd.read_csv(q_cache)
+                refresh_warnings.append("Quote hydration from cache completed for full universe coverage.")
+            except Exception:
+                refresh_warnings.append("Quote cache exists but could not be read.")
+        else:
+            refresh_warnings.append("Quote fallback unavailable; price/market cap may be missing.")
+
+    # Fundamentals TTM per ticker (resilient per ticker)
     ttm_latest = {}
     all_qhist = []
     all_ttm = []
 
     for t in UNIVERSE:
-        qhist = build_quarterly_history(t, limit=40)
-        ttm = build_ttm_from_quarters(qhist)
+        try:
+            qhist = build_quarterly_history(t, limit=40)
+            ttm = build_ttm_from_quarters(qhist)
 
-        all_qhist.append(qhist)
-        all_ttm.append(ttm)
+            all_qhist.append(qhist)
+            all_ttm.append(ttm)
 
-        if not ttm.empty:
-            ttm_latest[t] = ttm.iloc[0]
+            if not ttm.empty:
+                ttm_latest[t] = ttm.iloc[0]
+        except Exception as e:
+            refresh_warnings.append(f"Fundamentals refresh failed for {t}: {e}")
 
     qhist_all = pd.concat(all_qhist, ignore_index=True) if all_qhist else pd.DataFrame()
     ttm_all = pd.concat(all_ttm, ignore_index=True) if all_ttm else pd.DataFrame()
 
-    write_csv(qhist_all, DATA_PROCESSED / "fundamentals_quarterly_history_universe.csv")
-    write_csv(ttm_all, DATA_PROCESSED / "fundamentals_ttm_universe.csv")
+    if not qhist_all.empty:
+        write_csv(qhist_all, DATA_PROCESSED / "fundamentals_quarterly_history_universe.csv")
+    if not ttm_all.empty:
+        write_csv(ttm_all, DATA_PROCESSED / "fundamentals_ttm_universe.csv")
 
-    comps = build_comps_snapshot(ttm_latest, quotes)
-    write_csv(comps, DATA_PROCESSED / "comps_snapshot.csv")
+    comps = build_comps_snapshot(ttm_latest, quotes) if ttm_latest else pd.DataFrame()
+    if not comps.empty:
+        write_csv(comps, DATA_PROCESSED / "comps_snapshot.csv")
+    else:
+        cache_comps = DATA_PROCESSED / "comps_snapshot.csv"
+        if cache_comps.exists():
+            try:
+                comps = pd.read_csv(cache_comps)
+                refresh_warnings.append("Using cached comps_snapshot.csv due to refresh failure.")
+            except Exception:
+                refresh_warnings.append("comps_snapshot.csv cache exists but could not be read.")
 
     # NEWS (stable): SEC + Finnhub company news
-    news_df = run_news_pipeline(
-        tickers=UNIVERSE,
-        days_back=30,
-        enable_sources=["sec", "finnhub"],
-        sec_user_agent=None,
-        debug=True,
-    )
-    write_csv(news_df, DATA_PROCESSED / "news_unified.csv")
+    news_df = pd.DataFrame()
+    try:
+        news_df = run_news_pipeline(
+            tickers=UNIVERSE,
+            days_back=30,
+            enable_sources=["sec", "finnhub"],
+            sec_user_agent=None,
+            debug=True,
+        )
+        write_csv(news_df, DATA_PROCESSED / "news_unified.csv")
+    except Exception as e:
+        refresh_warnings.append(f"News refresh failed: {e}")
+        n_cache = DATA_PROCESSED / "news_unified.csv"
+        if n_cache.exists():
+            try:
+                news_df = pd.read_csv(n_cache)
+                refresh_warnings.append("Using cached news_unified.csv due to refresh failure.")
+            except Exception:
+                refresh_warnings.append("news_unified.csv cache exists but could not be read.")
 
     # Sentiment proxy (works without paid endpoints)
-    proxy_df = build_news_sentiment_proxy(news_df)
-    write_csv(proxy_df, DATA_PROCESSED / "news_sentiment_proxy.csv")
+    proxy_df = build_news_sentiment_proxy(news_df) if not news_df.empty else pd.DataFrame()
+    if not proxy_df.empty:
+        write_csv(proxy_df, DATA_PROCESSED / "news_sentiment_proxy.csv")
+    else:
+        p_cache = DATA_PROCESSED / "news_sentiment_proxy.csv"
+        if p_cache.exists():
+            try:
+                proxy_df = pd.read_csv(p_cache)
+                refresh_warnings.append("Using cached news_sentiment_proxy.csv due to refresh failure.")
+            except Exception:
+                refresh_warnings.append("news_sentiment_proxy.csv cache exists but could not be read.")
 
     proxy_row = {}
     if not proxy_df.empty:
@@ -517,21 +609,107 @@ def main():
             proxy_row = pr.iloc[0].to_dict()
 
     # Risk dashboard (TOTAL rows + clean blanks)
-    risk_dash = build_news_risk_dashboard(news_df)
-    write_csv(risk_dash, DATA_PROCESSED / "news_risk_dashboard.csv")
+    risk_dash = build_news_risk_dashboard(news_df) if not news_df.empty else pd.DataFrame()
+    if not risk_dash.empty:
+        write_csv(risk_dash, DATA_PROCESSED / "news_risk_dashboard.csv")
 
     # Evidence pack (clickable + CSV) so you can verify sources
-    evidence_uber = build_evidence_table(news_df, ticker=PRIMARY, days=30, max_rows=80)
-    write_csv(evidence_uber, DATA_PROCESSED / f"news_evidence_{PRIMARY}.csv")
-    write_evidence_html(
-        evidence_uber,
-        OUTPUTS / f"news_evidence_{PRIMARY}.html",
-        title=f"News Evidence — {PRIMARY} (last 30d)",
-    )
+    evidence_focus = build_evidence_table(news_df, ticker=PRIMARY, days=30, max_rows=80) if not news_df.empty else pd.DataFrame()
+    if not evidence_focus.empty:
+        write_csv(evidence_focus, DATA_PROCESSED / f"news_evidence_{PRIMARY}.csv")
+        write_evidence_html(
+            evidence_focus,
+            OUTPUTS / f"news_evidence_{PRIMARY}.html",
+            title=f"News Evidence — {PRIMARY} (last 30d)",
+        )
 
     # Summaries and decision
     news_summary = summarize_news_for_scoring(news_df, primary=PRIMARY, days_short=7, days_long=30)
+    if comps.empty:
+        raise RuntimeError("No comps snapshot available (live or cache), cannot score decision.")
     decision = compute_decision_with_peers_and_news(comps, news_summary, proxy_row)
+
+    # Provider health + metric provider provenance (fresh per run)
+    provider_priority = ["fmp_paid", "yahoo_public"]
+    if massive_key:
+        provider_priority.insert(1, "massive")
+
+    checks = []
+    if fmp_key:
+        checks.append(
+            _check_url(
+                "fmp_quote",
+                "https://financialmodelingprep.com/stable/quote",
+                {"symbol": PRIMARY, "apikey": fmp_key},
+            )
+        )
+    else:
+        checks.append({"name": "fmp_quote", "url": "https://financialmodelingprep.com/stable/quote?symbol=<T>&apikey=<missing>", "ok": False, "status_code": None, "error": "Missing FMP_API_KEY"})
+
+    if massive_key:
+        checks.append(
+            _check_url(
+                "massive_reference",
+                f"https://api.polygon.io/v3/reference/tickers/{PRIMARY}",
+                {"apiKey": massive_key},
+            )
+        )
+
+    checks.append(
+        _check_url(
+            "yahoo_quote",
+            "https://query1.finance.yahoo.com/v7/finance/quote",
+            {"symbols": PRIMARY},
+        )
+    )
+    checks.append(
+        _check_url(
+            "yahoo_summary",
+            f"https://query2.finance.yahoo.com/v10/finance/quoteSummary/{PRIMARY}",
+            {"modules": "price"},
+        )
+    )
+
+    provider_health = {
+        "as_of": AS_OF,
+        "primary": PRIMARY,
+        "provider_priority": provider_priority,
+        "fmp_api_key_present": bool(fmp_key),
+        "massive_api_key_present": bool(massive_key),
+        "checks": checks,
+    }
+    write_json(provider_health, OUTPUTS / f"provider_health_{PRIMARY}.json")
+
+    # Infer metric-provider used for audit trail.
+    metric_provider_used = {}
+    r0 = comps[comps["ticker"].astype(str).str.upper() == PRIMARY]
+    row0 = r0.iloc[0] if not r0.empty else None
+    def _mval(col):
+        if row0 is None or col not in comps.columns:
+            return None
+        v = row0.get(col)
+        try:
+            if pd.isna(v):
+                return None
+        except Exception:
+            pass
+        return float(v) if isinstance(v, (int, float)) else v
+
+    source_hint = "fmp_paid" if (checks and checks[0].get("ok")) else ("raw_cache" if (DATA_RAW / "quotes_universe_raw.csv").exists() else "unavailable")
+    metric_provider_used["price"] = {"provider": source_hint, "value": _mval("price")}
+    metric_provider_used["market_cap"] = {"provider": source_hint, "value": _mval("market_cap")}
+    metric_provider_used["revenue_ttm_yoy_pct"] = {"provider": source_hint, "value": _mval("revenue_ttm_yoy_pct")}
+    metric_provider_used["fcf_ttm"] = {"provider": source_hint, "value": _mval("fcf_ttm")}
+    metric_provider_used["fcf_margin_ttm_pct"] = {"provider": source_hint, "value": _mval("fcf_margin_ttm_pct")}
+    write_json(
+        {
+            "ticker": PRIMARY,
+            "as_of": AS_OF,
+            "metric_provider_used": metric_provider_used,
+            "provider_priority": provider_priority,
+        },
+        OUTPUTS / f"metric_provider_used_{PRIMARY}.json",
+    )
 
     write_json(
         {
@@ -550,6 +728,10 @@ def main():
                 "csv": f"data/processed/news_evidence_{PRIMARY}.csv",
                 "html": f"outputs/news_evidence_{PRIMARY}.html",
             },
+            "refresh_warnings": refresh_warnings,
+            "provider_health_file": f"outputs/provider_health_{PRIMARY}.json",
+            "metric_provider_used_file": f"outputs/metric_provider_used_{PRIMARY}.json",
+            "metric_provider_used": metric_provider_used,
         },
         OUTPUTS / "decision_summary.json",
     )
@@ -566,8 +748,8 @@ def main():
             "news_summary": decision.news_summary,
             "news_sentiment_proxy": decision.news_proxy,
             "plain_english": {
-                "what_this_is": "Engine uses TTM fundamentals + peer comps + stable news risk (SEC filings + Finnhub headlines).",
-                "veracity_check": "Open outputs/news_evidence_UBER.html to click and verify every headline the score is reacting to.",
+                "what_this_is": "Arc Reactor engine uses TTM fundamentals + peer comps + stable news risk (SEC filings + Finnhub headlines).",
+                "veracity_check": f"Open outputs/news_evidence_{PRIMARY}.html to verify every headline the score is reacting to.",
                 "why_proxy": "Finnhub /news-sentiment is often paywalled (403). Proxy uses headline keywords + impact scoring instead.",
             },
             "outputs_written": [
@@ -579,15 +761,22 @@ def main():
                 "outputs/decision_summary.json",
                 "outputs/decision_explanation.json",
             ],
+            "refresh_warnings": refresh_warnings,
         },
         OUTPUTS / "decision_explanation.json",
     )
+
+    write_json({"ticker": PRIMARY, "refresh_warnings": refresh_warnings}, OUTPUTS / f"refresh_warnings_{PRIMARY}.json")
 
     print("SUCCESS — Engine Running (SEC + Finnhub + Proxy + Evidence)")
     print("Universe:", UNIVERSE)
     print("Score:", decision.score)
     print("Rating:", decision.rating)
     print("Bucket scores:", decision.bucket_scores)
+    if refresh_warnings:
+        print("Refresh warnings:")
+        for w in refresh_warnings:
+            print(" -", w)
     if decision.red_flags:
         print("Red flags:")
         for rf in decision.red_flags:

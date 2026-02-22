@@ -35,9 +35,37 @@ def main(ticker: str, n: int = 20000, seed: int = 7):
     base = base if base is not None else metrics.get("base_price")
     bull = bull if bull is not None else metrics.get("bull_price")
 
+    fallback_used = False
+    fallback_reason = None
     if any(v is None for v in (bear, base, bull)):
-        raise SystemExit(f"❌ Missing bear/base/bull. Found bear={bear}, base={base}, bull={bull}. "
-                         f"Need {dcf_path} and/or {core_path} to contain these.")
+        # Fallback mode: create a synthetic cone around current price.
+        # Keep this explicit in output so users know it's a resilience mode.
+        if price in (None, 0):
+            # Try pulling price from comps snapshot
+            try:
+                import pandas as pd
+                comps = REPO / "data" / "processed" / "comps_snapshot.csv"
+                if comps.exists():
+                    df = pd.read_csv(comps)
+                    df["ticker"] = df["ticker"].astype(str).str.upper()
+                    r = df[df["ticker"] == T]
+                    if not r.empty:
+                        price = float(r.iloc[0].get("price"))
+            except Exception:
+                pass
+
+        if price in (None, 0):
+            raise SystemExit(
+                f"❌ Missing bear/base/bull and no usable price fallback for {T}. "
+                f"Need {dcf_path} and/or {core_path}, or comps snapshot with price."
+            )
+
+        price = float(price)
+        bear = price * 0.80
+        base = price * 1.00
+        bull = price * 1.35
+        fallback_used = True
+        fallback_reason = "missing_dcf_cone_price_anchored"
 
     a = float(min(bear, base, bull))
     b = float(max(bear, base, bull))
@@ -76,7 +104,11 @@ def main(ticker: str, n: int = 20000, seed: int = 7):
         "source": {
             "dcf": str(dcf_path),
             "decision_core": str(core_path)
-        }
+        },
+        "results": {
+            "fallback_used": fallback_used,
+            "fallback_reason": fallback_reason,
+        },
     }
 
     out_path = canon / f"{T}_MONTECARLO.json"

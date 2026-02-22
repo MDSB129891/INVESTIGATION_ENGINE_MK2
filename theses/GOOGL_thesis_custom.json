@@ -1,15 +1,24 @@
 {
-  "ticker": "GM",
-  "name": "GM: Custom thesis",
-  "headline": "GM: GM will increase in value due to EV and hybrid pivot",
-  "description": "GM will increase in value due to EV and hybrid pivot",
-  "generated_utc": "2026-02-22 21:28 UTC",
+  "ticker": "GOOGL",
+  "name": "GOOGL: Custom thesis",
+  "headline": "GOOGL: Google will increase in value due to AI demand over the next 6 months",
+  "description": "Google will increase in value due to AI demand over the next 6 months",
+  "generated_utc": "2026-02-22 21:54 UTC",
+  "profile": "growth",
+  "profile_thresholds": {
+    "rev_yoy_min": 10.0,
+    "fcf_positive_min": 0.0,
+    "fcf_margin_min": 0.0,
+    "fcf_yield_min": 1.0,
+    "news_shock_min": -18.0,
+    "risk_tag_max": 3
+  },
   "claims": [
     {
       "id": "c1",
       "metric": "latest_revenue_yoy_pct",
       "operator": ">=",
-      "threshold": 8.0,
+      "threshold": 10.0,
       "rationale": "Growth should stay positive in the base case."
     },
     {
@@ -23,21 +32,21 @@
       "id": "c3",
       "metric": "latest_fcf_margin_pct",
       "operator": ">=",
-      "threshold": 5.0,
+      "threshold": 0.0,
       "rationale": "Cash efficiency shouldn't collapse."
     },
     {
       "id": "c4",
       "metric": "fcf_yield_pct",
       "operator": ">=",
-      "threshold": 3.0,
+      "threshold": 1.0,
       "rationale": "Valuation should not be extremely stretched versus cash generation."
     },
     {
       "id": "c5",
       "metric": "news_shock_30d",
       "operator": ">=",
-      "threshold": -20.0,
+      "threshold": -18.0,
       "rationale": "Avoid severe negative headline shock over the last 30 days."
     },
     {

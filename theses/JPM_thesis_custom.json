@@ -1,15 +1,24 @@
 {
-  "ticker": "GM",
-  "name": "GM: Custom thesis",
-  "headline": "GM: GM will increase in value due to EV and hybrid pivot",
-  "description": "GM will increase in value due to EV and hybrid pivot",
-  "generated_utc": "2026-02-22 21:28 UTC",
+  "ticker": "JPM",
+  "name": "JPM: Custom thesis",
+  "headline": "JPM: JPM should benefit from steady credit demand and net interest income resilience",
+  "description": "JPM should benefit from steady credit demand and net interest income resilience",
+  "generated_utc": "2026-02-22 21:42 UTC",
+  "profile": "financial",
+  "profile_thresholds": {
+    "rev_yoy_min": 4.0,
+    "fcf_positive_min": 0.0,
+    "fcf_margin_min": 2.0,
+    "fcf_yield_min": 2.0,
+    "news_shock_min": -25.0,
+    "risk_tag_max": 5
+  },
   "claims": [
     {
       "id": "c1",
       "metric": "latest_revenue_yoy_pct",
       "operator": ">=",
-      "threshold": 8.0,
+      "threshold": 4.0,
       "rationale": "Growth should stay positive in the base case."
     },
     {
@@ -23,42 +32,42 @@
       "id": "c3",
       "metric": "latest_fcf_margin_pct",
       "operator": ">=",
-      "threshold": 5.0,
+      "threshold": 2.0,
       "rationale": "Cash efficiency shouldn't collapse."
     },
     {
       "id": "c4",
       "metric": "fcf_yield_pct",
       "operator": ">=",
-      "threshold": 3.0,
+      "threshold": 2.0,
       "rationale": "Valuation should not be extremely stretched versus cash generation."
     },
     {
       "id": "c5",
       "metric": "news_shock_30d",
       "operator": ">=",
-      "threshold": -20.0,
+      "threshold": -25.0,
       "rationale": "Avoid severe negative headline shock over the last 30 days."
     },
     {
       "id": "c6",
       "metric": "risk_regulatory_neg_30d",
       "operator": "<=",
-      "threshold": 3,
+      "threshold": 5,
       "rationale": "Regulatory pressure should not spike in the last 30 days."
     },
     {
       "id": "c7",
       "metric": "risk_insurance_neg_30d",
       "operator": "<=",
-      "threshold": 3,
+      "threshold": 5,
       "rationale": "Insurance-related negative headlines should not spike in the last 30 days."
     },
     {
       "id": "c8",
       "metric": "risk_labor_neg_30d",
       "operator": "<=",
-      "threshold": 3,
+      "threshold": 5,
       "rationale": "Labor-related negative headlines should not spike in the last 30 days."
     }
   ]

@@ -45,10 +45,15 @@ def main():
     _require_python_311()
     ap = argparse.ArgumentParser(description="VISION controller: ticker + thesis -> full armor pipeline")
     ap.add_argument("ticker", help="Ticker symbol (e.g., GM)")
-    ap.add_argument("thesis", help="Plain-English thesis text")
+    ap.add_argument("thesis", nargs="?", default="", help="Plain-English thesis text")
+    ap.add_argument("--thesis-file", default="", help="Existing thesis JSON file to use directly")
     ap.add_argument("--peers", default="", help="Comma separated peers, e.g., F,TM")
     ap.add_argument("--strict", action="store_true", help="Run strict mode (continue on refresh errors but mark warnings)")
     ap.add_argument("--godkiller", action="store_true", help="Max-strength run: strict + per-ticker integrity + legion readiness summary")
+    ap.add_argument("--persist-refresh", action="store_true", default=True, help="Use retry-until-ready refresh controller")
+    ap.add_argument("--no-persist-refresh", dest="persist_refresh", action="store_false", help="Run single-pass refresh only")
+    ap.add_argument("--max-refresh-attempts", type=int, default=int(os.getenv("ARC_REACTOR_MAX_ATTEMPTS", "0")))
+    ap.add_argument("--refresh-sleep-seconds", type=int, default=int(os.getenv("ARC_REACTOR_RETRY_SLEEP_SEC", "30")))
     args = ap.parse_args()
 
     t = args.ticker.upper().strip()
@@ -72,14 +77,78 @@ def main():
     env["PEERS"] = ",".join(peers)
     env["UNIVERSE"] = ",".join(universe)
 
-    _run([py, str(_script("compile_thesis_from_text.py")), "--ticker", t, "--text", args.thesis, "--out", str(thesis_out)], env=env)
+    thesis_text = (args.thesis or "").strip()
+    thesis_file = (args.thesis_file or "").strip()
+    if thesis_file:
+        tf = Path(thesis_file)
+        if not tf.is_absolute():
+            tf = (ROOT / tf).resolve()
+        if not tf.exists():
+            raise SystemExit(f"--thesis-file not found: {tf}")
+        thesis_out = tf
+        print(f"Using thesis file: {thesis_out}")
+        if not thesis_text:
+            try:
+                blob = json.loads(thesis_out.read_text(encoding="utf-8"))
+                thesis_text = (blob.get("description") or blob.get("headline") or "").strip()
+            except Exception:
+                thesis_text = ""
+    else:
+        if not thesis_text:
+            thesis_text = f"{t} base thesis"
+        _run(
+            [
+                py,
+                str(_script("compile_thesis_from_text.py")),
+                "--ticker",
+                t,
+                "--text",
+                thesis_text,
+                "--out",
+                str(thesis_out),
+            ],
+            env=env,
+        )
 
     # Refresh/update stage. If it fails, continue from latest processed artifacts.
-    refresh_ok = _run([py, str(_script("run_arc_reactor_update.py"))], env=env, allow_fail=True)
+    if args.persist_refresh:
+        refresh_cmd = [
+            py,
+            str(_script("run_arc_reactor_until_ready.py")),
+            "--ticker",
+            t,
+            "--universe",
+            ",".join(universe),
+            "--max-attempts",
+            str(args.max_refresh_attempts),
+            "--sleep-seconds",
+            str(args.refresh_sleep_seconds),
+        ]
+    else:
+        refresh_cmd = [
+            py,
+            str(_script("run_arc_reactor_update.py")),
+            "--ticker",
+            t,
+            "--universe",
+            ",".join(universe),
+        ]
+
+    refresh_ok = _run(refresh_cmd, env=env, allow_fail=True)
     if not refresh_ok:
         print("⚠️ refresh failed; continuing with existing processed/cache data")
 
     post_steps = [
+        # Thanos-compatible outputs first.
+        ("generate_thesis_suite.py", ["--ticker", t]),
+        ("build_veracity_pack.py", ["--ticker", t]),
+        ("build_alerts.py", ["--ticker", t]),
+        ("build_receipts_index.py", ["--ticker", t]),
+        ("build_claim_evidence.py", ["--ticker", t, "--thesis", str(thesis_out)]),
+        ("build_investment_memo.py", ["--ticker", t, "--thesis", str(thesis_out)]),
+        ("build_calculation_methodology.py", ["--ticker", t]),
+        ("export_pdf.py", ["--ticker", t]),
+        ("generate_dashboard.py", ["--ticker", t]),
         ("build_news_risk_summary.py", ["--ticker", t]),
         ("build_news_sources_tab.py", ["--ticker", t]),
         ("build_company_intel.py", ["--ticker", t]),
@@ -88,12 +157,10 @@ def main():
         ("friday/build_decision_core.py", ["--ticker", t]),
         ("build_montecarlo.py", ["--ticker", t]),
         ("build_timestone.py", ["--ticker", t]),
-        ("build_claim_evidence.py", ["--ticker", t, "--thesis", str(thesis_out)]),
         ("build_stormbreaker_tab.py", ["--ticker", t]),
-        ("build_receipts_index.py", ["--ticker", t]),
         ("build_ironman_hud.py", ["--ticker", t]),
         ("build_iron_legion.py", ["--focus", t]),
-        ("build_recommendation_brief.py", ["--ticker", t, "--thesis", args.thesis]),
+        ("build_recommendation_brief.py", ["--ticker", t, "--thesis", thesis_text]),
         ("build_mission_report.py", ["--tickers", ",".join(universe)]),  # optional script, skip if missing
         ("check_pipeline_integrity.py", ["--ticker", t]),
         ("build_armor_calibration.py", ["--ticker", t]),
@@ -115,6 +182,7 @@ def main():
         "build_recommendation_brief.py",
         "build_montecarlo.py",
         "check_pipeline_integrity.py",
+        "export_pdf.py",
         "build_armor_calibration.py",
         "build_confidence_governor.py",
         "build_arc_reactor_drift_monitor.py",
@@ -192,6 +260,10 @@ def main():
     print(f"- Legion Commander: {ROOT / 'outputs' / f'legion_commander_{t}.html'}")
     print(f"- Decision Core: {ROOT / 'export' / f'CANON_{t}' / f'{t}_DECISION_CORE.json'}")
     print(f"- Monte Carlo: {ROOT / 'export' / f'CANON_{t}' / f'{t}_MONTECARLO.json'}")
+    print(f"- Dashboard: {ROOT / 'outputs' / f'decision_dashboard_{t}.html'}")
+    print(f"- Veracity: {ROOT / 'outputs' / f'veracity_{t}.json'}")
+    print(f"- Alerts: {ROOT / 'outputs' / f'alerts_{t}.json'}")
+    print(f"- Memo PDF: {ROOT / 'export' / f'{t}_Full_Investment_Memo.pdf'}")
 
 
 if __name__ == "__main__":

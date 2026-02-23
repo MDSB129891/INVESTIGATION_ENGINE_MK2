@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -12,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA_PROCESSED = ROOT / "data" / "processed"
 THESES = ROOT / "theses"
 
-DEFAULT_TICKER = "AAPL"
+DEFAULT_TICKER = os.getenv("TICKER", "").strip().upper()
 
 import argparse
 
@@ -252,4 +253,6 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--ticker", default=DEFAULT_TICKER)
     args = ap.parse_args()
+    if not args.ticker:
+        raise SystemExit("Missing ticker. Pass --ticker TICKER or set TICKER env var.")
     main(args.ticker)

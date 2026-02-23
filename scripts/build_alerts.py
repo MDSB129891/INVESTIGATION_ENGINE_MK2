@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -107,6 +108,8 @@ def main(ticker: str):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--ticker", default="AAPL")
+    ap.add_argument("--ticker", default=os.getenv("TICKER", "").strip().upper())
     args = ap.parse_args()
+    if not args.ticker:
+        raise SystemExit("Missing ticker. Pass --ticker TICKER or set TICKER env var.")
     main(args.ticker)

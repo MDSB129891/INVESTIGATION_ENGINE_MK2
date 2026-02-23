@@ -2,136 +2,80 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-TICKER="${1:-AAPL}"
-ACTIVE_THESIS="${2:-theses/${TICKER}_thesis_base.json}"
-
-echo "🟣 THANOS RUN: ${TICKER}"
-echo "Thesis override: ${ACTIVE_THESIS:-<none>}"
+TICKER="${1:-}"
+ARG_THESIS_FILE="${2:-}"
 BASE_THESIS="theses/${TICKER}_thesis_base.json"
-ACTIVE_THESIS="${THESIS_OVERRIDE:-$BASE_THESIS}"
-echo "Thesis used: ${ACTIVE_THESIS}"
+THESIS_FILE="${THESIS_OVERRIDE:-${ARG_THESIS_FILE:-$BASE_THESIS}}"
 
-
-# Universe: you can change peers here if you want (or pass UNIVERSE env)
-export UNIVERSE="${UNIVERSE:-${TICKER},LYFT,DASH}"
-
-echo "=== 1) Engine update (financials + news) ==="
-python3 scripts/run_arc_reactor_update.py
-
-# --- GALACTUS: force shared summary to match this ticker (prevents ticker mismatch) ---
-if [ -f "outputs/decision_summary_${TICKER}.json" ]; then
-  cp "outputs/decision_summary_${TICKER}.json" "outputs/decision_summary.json"
-fi
-if [ -f "outputs/decision_explanation_${TICKER}.json" ]; then
-  cp "outputs/decision_explanation_${TICKER}.json" "outputs/decision_explanation.json"
+if [[ -z "${TICKER}" ]]; then
+  echo "Usage: ./scripts/run_thanos.sh TICKER [THESIS_JSON]"
+  exit 1
 fi
 
+default_peers_for_ticker() {
+  case "$1" in
+    GM) echo "F,TM" ;;
+    F) echo "GM,TM" ;;
+    TM) echo "GM,F" ;;
+    TSLA) echo "GM,F" ;;
+    UBER) echo "LYFT,DASH" ;;
+    LYFT) echo "UBER,DASH" ;;
+    DASH) echo "UBER,LYFT" ;;
+    INTC) echo "AMD,NVDA" ;;
+    AMD) echo "INTC,NVDA" ;;
+    NVDA) echo "AMD,INTC" ;;
+    AAPL) echo "MSFT,GOOGL" ;;
+    MSFT) echo "AAPL,GOOGL" ;;
+    GOOGL|GOOG) echo "MSFT,META" ;;
+    META) echo "GOOGL,SNAP" ;;
+    AMZN) echo "WMT,TGT" ;;
+    WMT) echo "TGT,COST" ;;
+    *) echo "SPY" ;;
+  esac
+}
 
-echo "=== 2) Thesis suite (bear/base/bull) ==="
-python3 scripts/generate_thesis_suite.py --ticker "${TICKER}"
+PYTHON_BIN="python3"
+if [[ -x ".venv/bin/python3" ]]; then
+  PYTHON_BIN=".venv/bin/python3"
+fi
 
-echo "=== 3) Veracity pack (confidence + clickpack) ==="
-python3 scripts/build_veracity_pack.py --ticker "${TICKER}"
+if [[ ! -f "$THESIS_FILE" ]]; then
+  echo "❌ Thesis file not found: $THESIS_FILE"
+  exit 1
+fi
 
-echo "=== 4) Alerts (thesis breakers + red lines) ==="
-python3 scripts/build_alerts.py --ticker "${TICKER}"
-
-echo "=== 4.5) Claim evidence (Stormbreaker) ==="
-echo "=== 4.6) Receipts Index (proof / audit trail) ==="
-python3 scripts/build_receipts_index.py --ticker "${TICKER}"
-
-if [[ -n "${ACTIVE_THESIS}" ]]; then
-  python3 scripts/build_claim_evidence.py --ticker "$TICKER" --thesis "${ACTIVE_THESIS}" || true
+if [[ -n "${UNIVERSE:-}" ]]; then
+  PEERS="$("$PYTHON_BIN" - "$TICKER" "$UNIVERSE" <<'PY'
+import sys
+t = sys.argv[1].upper()
+u = [x.strip().upper() for x in sys.argv[2].split(",") if x.strip()]
+print(",".join([x for x in u if x != t]))
+PY
+)"
+elif [[ -n "${PEERS:-}" ]]; then
+  PEERS="${PEERS}"
 else
-  echo "⚠️ Claim evidence skipped: no ACTIVE_THESIS"
-fi
-echo "=== 5) Full memo (novice friendly + verdict + scenarios) ==="
-if [[ -n "${ACTIVE_THESIS}" ]]; then
-  python3 scripts/build_investment_memo.py --ticker "${TICKER}" --thesis "${ACTIVE_THESIS}"
-else
-  python3 scripts/build_investment_memo.py --ticker "${TICKER}"
+  PEERS="$(default_peers_for_ticker "${TICKER}")"
 fi
 
-echo "=== 5a) Calculation methodology (formulas + worked example) ==="
-python3 scripts/build_calculation_methodology.py --ticker "${TICKER}"
+echo "🟣 THANOS (compat wrapper -> VISION)"
+echo "Ticker: ${TICKER}"
+echo "Thesis file: ${THESIS_FILE}"
+echo "Peers: ${PEERS:-<none>}"
 
-
-echo "=== 5b) Export PDF ==="
-python3 scripts/export_pdf.py --ticker "${TICKER}"
-
-echo "=== 6) One-page dashboard (links everything) ==="
+"$PYTHON_BIN" scripts/vision.py \
+  "${TICKER}" \
+  --thesis-file "${THESIS_FILE}" \
+  --peers "${PEERS}" \
+  --persist-refresh \
+  --max-refresh-attempts "${ARC_REACTOR_MAX_ATTEMPTS:-0}" \
+  --refresh-sleep-seconds "${ARC_REACTOR_RETRY_SLEEP_SEC:-30}"
 
 echo ""
-echo "=== 7) Time Stone (history view over time) ==="
-python3 scripts/build_timestone.py --ticker "$TICKER" || true
-
-python3 scripts/generate_dashboard.py --ticker "${TICKER}"
-
-echo ""
-echo "=== 8) Iron Legion Command ==="
-if [ -f "scripts/build_iron_legion.py" ]; then
-  python3 scripts/build_iron_legion.py --focus "${TICKER}" || true
-else
-  echo "⚠️ Iron Legion skipped: scripts/build_iron_legion.py missing"
-fi
-
-echo ""
-echo "DONE ✅ THANOS PACK:"
-echo "- outputs/news_clickpack_${TICKER}.html"
+echo "DONE ✅ THANOS via VISION"
+echo "- outputs/decision_dashboard_${TICKER}.html"
 echo "- outputs/veracity_${TICKER}.json"
 echo "- outputs/alerts_${TICKER}.json"
-echo "- outputs/decision_dashboard_${TICKER}.html"
-echo "- export/${TICKER}_Full_Investment_Memo.docx"
-echo "- outputs/${TICKER}_Calculation_Methodology.md"
-echo "- export/${TICKER}_Calculation_Methodology.docx"
-echo ""
-
-# [JARVIS] muted duplicate open: open "outputs/decision_dashboard_${TICKER}.html" || true
-# [JARVIS] muted duplicate open: open "export/${TICKER}_Full_Investment_Memo.docx" || true
-
-
-echo "=== X) ULTRA memo (novice / explain-everything) ==="
-# ULTRA requires --thesis. Prefer override if provided, else base thesis.
-BASE_THESIS="theses/${TICKER}_thesis_base.json"
-
-if [ -n "${THESIS_OVERRIDE:-}" ] && [ -f "${THESIS_OVERRIDE}" ]; then
-  python3 scripts/build_ultra_memo.py --ticker "$TICKER" --thesis "${THESIS_OVERRIDE}" || true
-elif [ -f "${BASE_THESIS}" ]; then
-  python3 scripts/build_ultra_memo.py --ticker "$TICKER" --thesis "${BASE_THESIS}" || true
-else
-  echo "⚠️ ULTRA skipped: no thesis file found (need ${BASE_THESIS} or THESIS_OVERRIDE)"
-fi
-
-echo ""
-echo "🚀 OPENING ULTRA RESULTS"
-open "export/${TICKER}_ULTRA_Memo.docx" || true
-
-
-echo ""
-echo "=== Y) SUPER+ memo (storytime, funniest + most hand-holding) ==="
-BASE_THESIS="theses/${TICKER}_thesis_base.json"
-
-THESIS_FOR_SUPER=""
-if [ -n "${THESIS_OVERRIDE:-}" ] && [ -f "${THESIS_OVERRIDE}" ]; then
-  THESIS_FOR_SUPER="${THESIS_OVERRIDE}"
-elif [ -f "${BASE_THESIS}" ]; then
-  THESIS_FOR_SUPER="${BASE_THESIS}"
-fi
-
-if [ -n "${THESIS_FOR_SUPER}" ]; then
-  # build SUPER+ (docx)
-  python3 scripts/build_super_plus.py --ticker "$TICKER" --thesis "${THESIS_FOR_SUPER}" || true
-
-  # convert to pdf if soffice exists
-  SUPER_DOCX="export/${TICKER}_SUPER_PLUS_Memo.docx"
-  if [ -f "${SUPER_DOCX}" ]; then
-    if command -v soffice >/dev/null 2>&1; then
-      soffice --headless --convert-to pdf --outdir export "${SUPER_DOCX}" >/dev/null 2>&1 || true
-      echo "✅ SUPER+ PDF attempted: export/${TICKER}_SUPER_PLUS_Memo.pdf"
-    else
-      echo "⚠️ soffice not found; SUPER+ PDF skipped"
-    fi
-  fi
-else
-  echo "⚠️ SUPER+ skipped: no thesis file found (need ${BASE_THESIS} or THESIS_OVERRIDE)"
-fi
+echo "- outputs/iron_legion_command_${TICKER}.html"
+echo "- export/CANON_${TICKER}/${TICKER}_IRONMAN_HUD.html"
+echo "- export/${TICKER}_Full_Investment_Memo.pdf"

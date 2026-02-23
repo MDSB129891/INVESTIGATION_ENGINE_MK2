@@ -11,6 +11,7 @@ if str(_REPO_ROOT) not in sys.path:
 
 import argparse
 import json
+import os
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 
@@ -140,7 +141,9 @@ def main(ticker: str, mode: str):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--ticker", default="AAPL")
+    ap.add_argument("--ticker", default=os.getenv("TICKER", "").strip().upper())
     ap.add_argument("--mode", default="hybrid")
     args = ap.parse_args()
+    if not args.ticker:
+        raise SystemExit("Missing ticker. Pass --ticker TICKER or set TICKER env var.")
     main(args.ticker, args.mode)

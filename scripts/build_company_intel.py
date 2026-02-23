@@ -133,8 +133,35 @@ def _alpha_overview(t: str, key: str):
 
 
 def _sec_cik(t: str):
+    ua = (
+        os.getenv("SEC_NEWS_USER_AGENT")
+        or os.getenv("SEC_USER_AGENT")
+        or "investment_decision_engine contact: melbello1205@gmail.com"
+    ).strip()
+    headers = {"User-Agent": ua}
     try:
-        r = request_with_resilience("sec", "https://www.sec.gov/files/company_tickers.json", max_retries=2)
+        r = request_with_resilience(
+            "sec",
+            "https://www.sec.gov/files/company_tickers.json",
+            headers=headers,
+            max_retries=2,
+        )
+        data = r.json() or {}
+        tu = t.upper()
+        for _, row in data.items():
+            if str(row.get("ticker", "")).upper() == tu:
+                cik_int = int(row.get("cik_str"))
+                return f"{cik_int:010d}"
+    except Exception:
+        pass
+    try:
+        # Fallback mirror endpoint.
+        r = request_with_resilience(
+            "sec",
+            "https://data.sec.gov/submissions/company_tickers.json",
+            headers=headers,
+            max_retries=2,
+        )
         data = r.json() or {}
         tu = t.upper()
         for _, row in data.items():

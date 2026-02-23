@@ -581,13 +581,12 @@ def main(ticker: str):
     links = []
     next_candidates = [
         (f"{T}_TIMESTONE.html", canon / f"{T}_TIMESTONE.html", "Time Stone"),
-        (f"{T}_NEWS_SOURCES.html", canon / f"{T}_NEWS_SOURCES.html", "News Sources"),
+        (f"{T}_NEWS_SOURCES.html", canon / f"{T}_NEWS_SOURCES.html", "J.A.R.V.I.S. News Sources"),
         (f"{T}_STORMBREAKER.html", canon / f"{T}_STORMBREAKER.html", "Stormbreaker"),
         (f"{T}_ARMOR_SYSTEMS.html", canon / f"{T}_ARMOR_SYSTEMS.html", "Armor systems"),
         (f"../../outputs/iron_legion_command_{T}.html", ROOT / "outputs" / f"iron_legion_command_{T}.html", "Iron Legion command"),
         (f"../../outputs/receipts_{T}.html", ROOT / "outputs" / f"receipts_{T}.html", "Receipts"),
         (f"decision_dashboard_{T}.html", canon / f"decision_dashboard_{T}.html", "Dashboard"),
-        (f"news_clickpack_{T}.html", canon / f"news_clickpack_{T}.html", "News clickpack"),
         (f"../../outputs/claim_evidence_{T}.html", ROOT / "outputs" / f"claim_evidence_{T}.html", "Claim evidence"),
     ]
     for href, p, label in next_candidates:
@@ -717,9 +716,15 @@ def main(ticker: str):
     )
     news_tab_path = canon / f"{T}_NEWS_SOURCES.html"
     news_tab_link = (
-        f'<a href="{T}_NEWS_SOURCES.html">Open News Sources tab</a>'
+        f'<a href="{T}_NEWS_SOURCES.html">Open J.A.R.V.I.S. News Sources (Primary)</a>'
         if news_tab_path.exists()
         else f'<a href="../../outputs/news_evidence_{T}.html">Open raw news evidence</a>'
+    )
+    clickpack_path = canon / f"news_clickpack_{T}.html"
+    clickpack_link = (
+        f'<a href="news_clickpack_{T}.html">Open News Clickpack (Secondary drill-down)</a>'
+        if clickpack_path.exists()
+        else f'<a href="../../outputs/news_clickpack_{T}.html">Open News Clickpack (Secondary drill-down)</a>'
     )
 
     # --- Closest competitors snapshot (peer universe first, then market-cap proximity fallback) ---
@@ -1129,6 +1134,16 @@ def main(ticker: str):
             "Headline pressure is elevated; expect volatility.",
         ),
     ]
+    _zone_class = {"Good": "good", "Okay": "ok", "Weak": "bad", "Unknown": "neutral"}
+    core_signal_rows_html = "".join(
+        f"<tr>"
+        f"<td><b>{htmlmod.escape(r['metric'])}</b></td>"
+        f"<td>{htmlmod.escape(r['value'])}</td>"
+        f"<td><span class=\"tone {_zone_class.get(r['zone'], 'neutral')}\">{htmlmod.escape(r['zone'])}</span></td>"
+        f"<td>{htmlmod.escape(r.get('today_plain') or r['meaning'])}</td>"
+        f"</tr>"
+        for r in aha_rows
+    )
 
     # --- Deep explanation layer: panel guide + metric field manual ---
     part_guide = [
@@ -1378,7 +1393,6 @@ def main(ticker: str):
         for m in metric_manual
     )
 
-    _zone_class = {"Good": "good", "Okay": "ok", "Weak": "bad", "Unknown": "neutral"}
     aha_decoder_html = "".join(
         f"<li><b>{htmlmod.escape(r['metric'])}</b>: {htmlmod.escape(r['value'])} -> "
         f"<span class=\"tone {_zone_class.get(r['zone'], 'neutral')}\">{htmlmod.escape(r['zone'])}</span>. "
@@ -1431,6 +1445,13 @@ body {{
 h1 {{ margin:0; font-size: 34px; letter-spacing:0.2px; }}
 .sub {{ color:var(--muted); font-size:14px; }}
 .grid {{ display:grid; grid-template-columns: repeat(12, 1fr); gap: 14px; margin-top: 18px; }}
+.navstrip {{
+  display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;
+  padding:10px; border:1px solid var(--line); border-radius:12px; background:#0d1627;
+}}
+.navstrip a {{
+  border:1px solid #2a4468; background:#12233a; border-radius:999px; padding:6px 10px; font-size:12px;
+}}
 .card {{
   background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.00)), var(--card);
   border:1px solid var(--line);
@@ -1473,6 +1494,13 @@ a {{ color:#8fd3ff; text-decoration:none; }}
 }}
 .aha ul {{ margin:8px 0 0 16px; padding:0; }}
 .aha li {{ margin: 5px 0; }}
+.fold {{ margin-top:8px; border:1px solid #274566; border-radius:12px; background:#0d1627; }}
+.fold > summary {{
+  cursor:pointer; list-style:none; padding:10px 12px; font-weight:700;
+  display:flex; justify-content:space-between; align-items:center;
+}}
+.fold > summary::-webkit-details-marker {{ display:none; }}
+.fold .fold-body {{ padding:0 12px 12px 12px; }}
 @media (max-width: 980px) {{
   .stone-grid {{ grid-template-columns: repeat(2,1fr); }}
   .span-6,.span-4,.span-3 {{ grid-column: span 12; }}
@@ -1488,6 +1516,15 @@ a {{ color:#8fd3ff; text-decoration:none; }}
     </div>
     <div class="sub">File: {T}_IRONMAN_HUD.html</div>
   </div>
+  <div class="navstrip">
+    <a href="#mission">Start Here</a>
+    <a href="#core-signals">Core Signals</a>
+    <a href="#infinity">Infinity Readout</a>
+    <a href="#stormbreaker">Thesis Checks</a>
+    <a href="#risk">Risk</a>
+    <a href="#receipts">Receipts</a>
+    <a href="#glossary">Glossary</a>
+  </div>
 
   <div class="grid">
     <div class="card span-12">
@@ -1496,7 +1533,7 @@ a {{ color:#8fd3ff; text-decoration:none; }}
       <div class="small">{htmlmod.escape(trust_explain)}</div>
     </div>
 
-    <div class="card span-12">
+    <div class="card span-12" id="mission">
       <div class="k">1-Minute Mission Brief (Start Here)</div>
       <div class="row"><div>Verdict</div><div>{one_line_tone}</div></div>
       <div class="v" style="font-size:21px;">{htmlmod.escape(one_line_call)}</div>
@@ -1507,6 +1544,19 @@ a {{ color:#8fd3ff; text-decoration:none; }}
         </ul>
       </div>
       <div class="small">Signal coverage: {good_count} strong, {bad_count} weak, {unknown_count} unknown.</div>
+    </div>
+
+    <div class="card span-12" id="core-signals">
+      <div class="k">Reading Order (For New Users)</div>
+      <div class="small">1) Read Mission Brief. 2) Check Core Signals table. 3) Verify Stormbreaker + Risk. 4) Open Deep Dive sections only if you need detail.</div>
+      <table class="aha-table" style="width:100%; margin-top:8px; border-collapse:collapse;">
+        <thead>
+          <tr><th>Signal</th><th>Current</th><th>Zone</th><th>Plain-English Meaning</th></tr>
+        </thead>
+        <tbody>
+          {core_signal_rows_html}
+        </tbody>
+      </table>
     </div>
 
     <div class="card span-12">
@@ -1539,30 +1589,34 @@ a {{ color:#8fd3ff; text-decoration:none; }}
     </div>
 
     <div class="card span-12">
-      <div class="k">Closest Competitors (Side-by-Side Check)</div>
-      <div class="small">{htmlmod.escape(competitors_context)}</div>
-      <table class="aha-table" style="width:100%; margin-top:8px; border-collapse:collapse;">
-        <thead>
-          <tr>
-            <th>Ticker</th>
-            <th>Price</th>
-            <th>Market Cap</th>
-            <th>Sales YoY</th>
-            <th>FCF Margin</th>
-            <th>FCF Yield</th>
-            <th>Net Debt / FCF</th>
-            <th>Risk Total (30d)</th>
-            <th>Quick Read</th>
-          </tr>
-        </thead>
-        <tbody>
-          {competitors_rows_html}
-        </tbody>
-      </table>
-      <div class="small">Tip: pass peers in Vision run (example: <code>--peers MSFT,AMZN</code>) for more relevant competitor matching.</div>
+      <details class="fold">
+        <summary><span>Closest Competitors (Deep Dive)</span><span class="small">Expand/Collapse</span></summary>
+        <div class="fold-body">
+          <div class="small">{htmlmod.escape(competitors_context)}</div>
+          <table class="aha-table" style="width:100%; margin-top:8px; border-collapse:collapse;">
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th>Price</th>
+                <th>Market Cap</th>
+                <th>Sales YoY</th>
+                <th>FCF Margin</th>
+                <th>FCF Yield</th>
+                <th>Net Debt / FCF</th>
+                <th>Risk Total (30d)</th>
+                <th>Quick Read</th>
+              </tr>
+            </thead>
+            <tbody>
+              {competitors_rows_html}
+            </tbody>
+          </table>
+          <div class="small">Tip: pass peers in Vision run (example: <code>--peers MSFT,AMZN</code>) for more relevant competitor matching.</div>
+        </div>
+      </details>
     </div>
 
-    <div class="card span-12">
+    <div class="card span-12" id="infinity">
       <div class="k">Infinity Readout (At a Glance / Core Signals)</div>
       <div class="stone-grid">
         <div class="stone"><h4>🔵 Time (Growth)</h4>{growth_tone}<div class="small">{fmt_pct(rev_yoy)} YoY sales growth.</div></div>
@@ -1601,35 +1655,43 @@ a {{ color:#8fd3ff; text-decoration:none; }}
     </div>
 
     <div class="card span-12">
-      <div class="k">Aha Mode: Apples-to-Apples Scoreboard</div>
-      <div class="small">Same thresholds every run. This keeps comparisons fair and easy to understand across all tickers.</div>
-      <div class="aha">
-        <b>Interpretation Decoder:</b>
-        <ul>
-          {aha_decoder_html}
-        </ul>
-      </div>
-      <table class="aha-table" style="width:100%; margin-top:8px; border-collapse:collapse;">
-        <thead>
-          <tr><th>Metric</th><th>Your Number</th><th>Zone</th><th>Rule</th><th>What It Means</th><th>Plain-English Today</th></tr>
-        </thead>
-        <tbody>
-          {aha_rows_html}
-        </tbody>
-      </table>
+      <details class="fold">
+        <summary><span>Aha Mode: Apples-to-Apples Scoreboard (Deep Dive)</span><span class="small">Expand/Collapse</span></summary>
+        <div class="fold-body">
+          <div class="small">Same thresholds every run. This keeps comparisons fair and easy to understand across all tickers.</div>
+          <div class="aha">
+            <b>Interpretation Decoder:</b>
+            <ul>
+              {aha_decoder_html}
+            </ul>
+          </div>
+          <table class="aha-table" style="width:100%; margin-top:8px; border-collapse:collapse;">
+            <thead>
+              <tr><th>Metric</th><th>Your Number</th><th>Zone</th><th>Rule</th><th>What It Means</th><th>Plain-English Today</th></tr>
+            </thead>
+            <tbody>
+              {aha_rows_html}
+            </tbody>
+          </table>
+        </div>
+      </details>
     </div>
 
     <div class="card span-12">
-      <div class="k">Metric Field Manual (Detailed Explanations)</div>
-      <div class="small">Each metric below includes what it is, why it matters, the formula, how to read today’s value, and the main caveat.</div>
-      <table class="aha-table" style="width:100%; margin-top:8px; border-collapse:collapse;">
-        <thead>
-          <tr><th>Metric</th><th>Current</th><th>What It Is</th><th>Why It Matters</th><th>Formula</th><th>How To Read Today</th><th>Watch-Out</th></tr>
-        </thead>
-        <tbody>
-          {metric_manual_rows_html}
-        </tbody>
-      </table>
+      <details class="fold">
+        <summary><span>Metric Field Manual (Detailed Explanations)</span><span class="small">Expand/Collapse</span></summary>
+        <div class="fold-body">
+          <div class="small">Each metric includes what it is, why it matters, formula, today’s interpretation, and watch-outs.</div>
+          <table class="aha-table" style="width:100%; margin-top:8px; border-collapse:collapse;">
+            <thead>
+              <tr><th>Metric</th><th>Current</th><th>What It Is</th><th>Why It Matters</th><th>Formula</th><th>How To Read Today</th><th>Watch-Out</th></tr>
+            </thead>
+            <tbody>
+              {metric_manual_rows_html}
+            </tbody>
+          </table>
+        </div>
+      </details>
     </div>
 
     <div class="card span-6">
@@ -1675,7 +1737,7 @@ a {{ color:#8fd3ff; text-decoration:none; }}
       <div class="small">If Base is above market price, model implies potential upside (and vice versa).</div>
     </div>
 
-    <div class="card span-12">
+    <div class="card span-12" id="risk">
       <div class="k">Risk Counts (30d / Headline Pressure)</div>
       <div class="row"><div>Labor</div><div>{risk_labor}</div></div>
       <div class="row"><div>Regulatory</div><div>{risk_reg}</div></div>
@@ -1695,10 +1757,11 @@ a {{ color:#8fd3ff; text-decoration:none; }}
       <div class="row"><div>Evidence rows (30d)</div><div>{_fmt_num(news_evidence_rows)}</div></div>
       <div class="row"><div>Source mix (30d)</div><div>{htmlmod.escape(news_source_mix)}</div></div>
       <div class="small">{news_tab_link}</div>
+      <div class="small">{clickpack_link}</div>
       <div class="small">Raw evidence: <a href="../../outputs/news_evidence_{T}.html">news_evidence_{T}.html</a></div>
     </div>
 
-    <div class="card span-12">
+    <div class="card span-12" id="stormbreaker">
       <div class="k">Stormbreaker Verdict (Thesis Stress Tests)</div>
       <div class="row"><div>Overall</div><div>{sb_tone}</div></div>
       <div class="row"><div>PASS</div><div><b>{sb_pass}</b></div></div>
@@ -1710,39 +1773,51 @@ a {{ color:#8fd3ff; text-decoration:none; }}
     </div>
 
     <div class="card span-12">
-      <div class="k">Company Red Flags (Data + News Interpretation)</div>
-      <div class="small">These are the concrete issues the engine sees right now, translated into plain English.</div>
-      <table class="aha-table" style="width:100%; margin-top:8px; border-collapse:collapse;">
-        <thead>
-          <tr><th>Red Flag</th><th>Why It Matters</th></tr>
-        </thead>
-        <tbody>
-          {red_flags_html}
-        </tbody>
-      </table>
+      <details class="fold">
+        <summary><span>Company Red Flags (Deep Dive)</span><span class="small">Expand/Collapse</span></summary>
+        <div class="fold-body">
+          <div class="small">Concrete issues detected in this run, translated to plain English.</div>
+          <table class="aha-table" style="width:100%; margin-top:8px; border-collapse:collapse;">
+            <thead>
+              <tr><th>Red Flag</th><th>Why It Matters</th></tr>
+            </thead>
+            <tbody>
+              {red_flags_html}
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+
+    <div class="card span-12" id="receipts">
+      <details class="fold">
+        <summary><span>Receipts (Audit Trail)</span><span class="small">Expand/Collapse</span></summary>
+        <div class="fold-body">
+          <div class="sub">Pulled from <code>outputs/receipts_{T}.json</code></div>
+          {receipts_html}
+        </div>
+      </details>
     </div>
 
     <div class="card span-12">
-      <div class="k">Receipts (Why These Numbers Matter / Audit Trail)</div>
-      <div class="sub">Pulled from <code>outputs/receipts_{T}.json</code></div>
-      {receipts_html}
+      <details class="fold">
+        <summary><span>J.A.R.V.I.S. Sensor Bus (Metric Provenance)</span><span class="small">Expand/Collapse</span></summary>
+        <div class="fold-body">
+          <div class="small">Where each critical metric came from in this run (live provider vs cache).</div>
+          <table class="pvt" style="width:100%; margin-top:8px; border-collapse:collapse;">
+            <thead>
+              <tr><th>Metric</th><th>Provider Used</th><th>Value Used</th></tr>
+            </thead>
+            <tbody>
+              {provider_provenance_rows_html}
+            </tbody>
+          </table>
+          <div class="small">Source file: <code>outputs/metric_provider_used_{T}.json</code></div>
+        </div>
+      </details>
     </div>
 
-    <div class="card span-12">
-      <div class="k">J.A.R.V.I.S. Sensor Bus (Metric Provenance)</div>
-      <div class="small">Where each critical metric came from in this run (live provider vs cache).</div>
-      <table class="pvt" style="width:100%; margin-top:8px; border-collapse:collapse;">
-        <thead>
-          <tr><th>Metric</th><th>Provider Used</th><th>Value Used</th></tr>
-        </thead>
-        <tbody>
-          {provider_provenance_rows_html}
-        </tbody>
-      </table>
-      <div class="small">Source file: <code>outputs/metric_provider_used_{T}.json</code></div>
-    </div>
-
-    <div class="card span-12">
+    <div class="card span-12" id="glossary">
       <div class="k">Quick Glossary (No Finance Background Needed)</div>
       <div class="small"><b>FCF (Free Cash Flow):</b> Cash left after running the business. More is better.</div>
       <div class="small"><b>FCF Yield:</b> Cash return relative to company value. Higher usually means better value.</div>

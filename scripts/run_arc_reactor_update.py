@@ -7,6 +7,8 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import json
+import re
+import shutil
 from dataclasses import dataclass
 from datetime import date, datetime, timezone, timedelta
 from typing import Dict
@@ -28,12 +30,55 @@ from analytics.news.sentiment_proxy import build_news_sentiment_proxy
 from analytics.news.risk_dashboard import build_news_risk_dashboard
 from analytics.news.evidence import build_evidence_table, write_evidence_html
 
-# ---- Thanos-safe universe config (do not edit by hand) ----
-TICKER = os.getenv("TICKER", "AAPL").strip().upper()
-PEERS = [s.strip().upper() for s in os.getenv("PEERS", "LYFT,DASH").split(",") if s.strip()]
+# ---- Runtime universe config (CLI/env driven; no hardcoded ticker default) ----
+def _arg_value(flag: str) -> str:
+    try:
+        if flag in sys.argv:
+            i = sys.argv.index(flag)
+            if i + 1 < len(sys.argv):
+                return str(sys.argv[i + 1]).strip()
+    except Exception:
+        pass
+    return ""
+
+
+CLI_TICKER = _arg_value("--ticker")
+CLI_PEERS = _arg_value("--peers")
+CLI_UNIVERSE = _arg_value("--universe")
+
+TICKER = (CLI_TICKER or os.getenv("TICKER", "")).strip().upper()
+if not TICKER:
+    raise SystemExit("Missing ticker. Pass --ticker <TICKER> or set TICKER in environment.")
+
+def _default_peers_for_ticker(ticker: str) -> str:
+    t = (ticker or "").upper()
+    mapping = {
+        "GM": "F,TM",
+        "F": "GM,TM",
+        "TM": "GM,F",
+        "TSLA": "GM,F",
+        "UBER": "LYFT,DASH",
+        "LYFT": "UBER,DASH",
+        "DASH": "UBER,LYFT",
+        "INTC": "AMD,NVDA",
+        "AMD": "INTC,NVDA",
+        "NVDA": "AMD,INTC",
+        "AAPL": "MSFT,GOOGL",
+        "MSFT": "AAPL,GOOGL",
+        "GOOGL": "MSFT,META",
+        "GOOG": "MSFT,META",
+        "META": "GOOGL,SNAP",
+        "AMZN": "WMT,TGT",
+        "WMT": "TGT,COST",
+    }
+    return mapping.get(t, "SPY")
+
+PEERS_CSV = CLI_PEERS or os.getenv("PEERS", "") or _default_peers_for_ticker(TICKER)
+PEERS = [s.strip().upper() for s in PEERS_CSV.split(",") if s.strip()]
 UNIVERSE = [TICKER] + [p for p in PEERS if p != TICKER]
-# Optional override: set UNIVERSE="AAPL,MSFT,GOOGL" to fully control
-UNIVERSE_ENV = os.getenv("UNIVERSE", "")
+
+# Optional override: --universe or UNIVERSE="AAPL,MSFT,GOOGL"
+UNIVERSE_ENV = CLI_UNIVERSE or os.getenv("UNIVERSE", "")
 if UNIVERSE_ENV.strip():
     UNIVERSE = [s.strip().upper() for s in UNIVERSE_ENV.split(",") if s.strip()]
 # -----------------------------------------------------------
@@ -50,7 +95,7 @@ OUTPUTS = ROOT / "outputs"
 # IO helpers
 # ---------------------------
 def ensure_dirs():
-    for p in [DATA_RAW, DATA_PROCESSED, OUTPUTS]:
+    for p in [DATA_RAW, DATA_PROCESSED, DATA_PROCESSED / "last_good", OUTPUTS]:
         p.mkdir(parents=True, exist_ok=True)
 
 
@@ -86,6 +131,39 @@ def write_json(obj: dict, path: Path):
         return str(x)
 
     path.write_text(json.dumps(obj, indent=2, default=_json_default), encoding="utf-8")
+
+
+def _read_nonempty_csv(path: Path) -> pd.DataFrame:
+    try:
+        if path.exists() and path.stat().st_size > 1:
+            df = pd.read_csv(path)
+            if not df.empty:
+                return df
+    except Exception:
+        pass
+    return pd.DataFrame()
+
+
+def _snapshot_last_good_csv(path: Path, stem: str) -> None:
+    df = _read_nonempty_csv(path)
+    if df.empty:
+        return
+    lg_dir = DATA_PROCESSED / "last_good"
+    lg_dir.mkdir(parents=True, exist_ok=True)
+    today = datetime.now(timezone.utc).strftime("%Y%m%d")
+    dated = lg_dir / f"{stem}_{today}.csv"
+    latest = lg_dir / f"{stem}_latest.csv"
+    shutil.copy2(path, dated)
+    shutil.copy2(path, latest)
+
+
+def _restore_last_good_csv(target_path: Path, stem: str) -> pd.DataFrame:
+    latest = DATA_PROCESSED / "last_good" / f"{stem}_latest.csv"
+    df = _read_nonempty_csv(latest)
+    if df.empty:
+        return pd.DataFrame()
+    write_csv(df, target_path)
+    return df
 
 
 # ---------------------------
@@ -151,15 +229,10 @@ def _redact_url(url: str) -> str:
 def _redact_text(text: str) -> str:
     if not isinstance(text, str):
         return str(text)
+    # Replace sensitive query values without looping on already-redacted text.
     for key in ("apikey=", "apiKey=", "token=", "api_token=", "authorization=", "x-api-key="):
-        while True:
-            i = text.find(key)
-            if i < 0:
-                break
-            j = text.find("&", i)
-            if j < 0:
-                j = len(text)
-            text = text[: i + len(key)] + "***REDACTED***" + text[j:]
+        pattern = re.compile(re.escape(key) + r"[^&\s]*")
+        text = pattern.sub(key + "***REDACTED***", text)
     return text
 
 
@@ -358,6 +431,17 @@ def _crosscheck_fmp_vs_massive(primary: str, fmp_key: str, massive_key: str) -> 
     out["variance_pct"]["price"] = p_var
     out["variance_pct"]["market_cap"] = m_var
 
+    if p_var is None:
+        out["alerts"].append(
+            "Price variance unavailable: one side is missing price "
+            f"(fmp={out['fmp']['price']}, massive={out['massive']['price']})."
+        )
+    if m_var is None:
+        out["alerts"].append(
+            "Market cap variance unavailable: one side is missing market cap "
+            f"(fmp={out['fmp']['market_cap']}, massive={out['massive']['market_cap']})."
+        )
+
     price_alert_threshold = float(os.getenv("CROSSCHECK_PRICE_VAR_ALERT_PCT", "2.0"))
     mcap_alert_threshold = float(os.getenv("CROSSCHECK_MCAP_VAR_ALERT_PCT", "8.0"))
     if p_var is not None and p_var > price_alert_threshold:
@@ -395,6 +479,19 @@ def _fetch_quotes_massive(tickers: list[str], api_key: str, timeout: int = 12) -
                     price = _safe_float((td.get("prevDay") or {}).get("c"))
         except Exception:
             pass
+
+        # Some plans/times return sparse snapshot payloads. Fallback to previous close endpoint.
+        if price is None:
+            try:
+                prev_url = f"https://api.polygon.io/v2/aggs/ticker/{tk}/prev"
+                rp = request_with_resilience("massive", prev_url, params={"apiKey": api_key}, timeout=timeout, max_retries=2)
+                if 200 <= rp.status_code < 300:
+                    pj = rp.json() or {}
+                    arr = pj.get("results") or []
+                    if isinstance(arr, list) and arr:
+                        price = _safe_float((arr[0] or {}).get("c"))
+            except Exception:
+                pass
 
         try:
             ref_url = f"https://api.polygon.io/v3/reference/tickers/{tk}"
@@ -511,6 +608,45 @@ def _bootstrap_primary_row(comps: pd.DataFrame, quotes: pd.DataFrame, primary: s
         + (" with live quote fields." if price is not None else " with null fundamentals.")
     )
     return out
+
+
+def _hydrate_missing_comps_from_last_good(comps: pd.DataFrame, universe: list[str], warnings: list) -> pd.DataFrame:
+    out = _ensure_comps_schema(comps)
+    if out.empty or "ticker" not in out.columns:
+        existing = set()
+    else:
+        out["ticker"] = out["ticker"].astype(str).str.upper()
+        existing = set(out["ticker"].tolist())
+
+    wanted = [str(t).upper().strip() for t in (universe or []) if str(t).strip()]
+    missing = [t for t in wanted if t not in existing]
+    if not missing:
+        return out
+
+    last_good = DATA_PROCESSED / "last_good" / "comps_snapshot_latest.csv"
+    if not last_good.exists():
+        return out
+
+    try:
+        lg = pd.read_csv(last_good)
+    except Exception:
+        warnings.append("last_good comps snapshot exists but could not be read.")
+        return out
+
+    lg = _ensure_comps_schema(lg)
+    if lg.empty:
+        return out
+    lg["ticker"] = lg["ticker"].astype(str).str.upper()
+
+    add = lg[lg["ticker"].isin(missing)]
+    if add.empty:
+        return out
+
+    out = pd.concat([out, add], ignore_index=True)
+    out = out.drop_duplicates(subset=["ticker"], keep="first").reset_index(drop=True)
+    restored = ",".join(sorted(set(add["ticker"].tolist())))
+    warnings.append(f"Restored missing peer comps from last_good cache: {restored}.")
+    return _ensure_comps_schema(out)
 
 
 # ---------------------------
@@ -1003,7 +1139,17 @@ def main():
                 refresh_warnings.append("comps_snapshot.csv cache exists but could not be read.")
     comps = _ensure_comps_schema(comps)
     comps = _bootstrap_primary_row(comps, quotes, PRIMARY, refresh_warnings)
+    comps = _hydrate_missing_comps_from_last_good(comps, UNIVERSE, refresh_warnings)
     write_csv(comps, DATA_PROCESSED / "comps_snapshot.csv")
+    try:
+        c = comps.copy()
+        c["ticker"] = c["ticker"].astype(str).str.upper()
+        required = set([str(t).upper().strip() for t in UNIVERSE if str(t).strip()])
+        present = set(c["ticker"].tolist())
+        if required and required.issubset(present):
+            _snapshot_last_good_csv(DATA_PROCESSED / "comps_snapshot.csv", "comps_snapshot")
+    except Exception:
+        pass
 
     # NEWS (stable): SEC + Finnhub company news
     news_df = pd.DataFrame()
@@ -1018,6 +1164,7 @@ def main():
     if alphavantage_key:
         news_sources_enabled.append("alphavantage")
 
+    news_fresh_ok = False
     try:
         news_df = run_news_pipeline(
             tickers=UNIVERSE,
@@ -1026,29 +1173,42 @@ def main():
             sec_user_agent=None,
             debug=True,
         )
-        write_csv(news_df, DATA_PROCESSED / "news_unified.csv")
+        if not news_df.empty:
+            write_csv(news_df, DATA_PROCESSED / "news_unified.csv")
+            _snapshot_last_good_csv(DATA_PROCESSED / "news_unified.csv", "news_unified")
+            news_fresh_ok = True
+        else:
+            refresh_warnings.append("News refresh returned zero rows.")
     except Exception as e:
         refresh_warnings.append(f"News refresh failed: {e}")
+    if not news_fresh_ok:
         n_cache = DATA_PROCESSED / "news_unified.csv"
-        if n_cache.exists():
-            try:
-                news_df = pd.read_csv(n_cache)
-                refresh_warnings.append("Using cached news_unified.csv due to refresh failure.")
-            except Exception:
-                refresh_warnings.append("news_unified.csv cache exists but could not be read.")
+        news_df = _read_nonempty_csv(n_cache)
+        if not news_df.empty:
+            refresh_warnings.append("Using cached news_unified.csv due to refresh failure.")
+        else:
+            news_df = _restore_last_good_csv(DATA_PROCESSED / "news_unified.csv", "news_unified")
+            if not news_df.empty:
+                refresh_warnings.append("Restored news_unified.csv from last_good cache.")
+            else:
+                refresh_warnings.append("No non-empty news_unified cache was available.")
 
     # Sentiment proxy (works without paid endpoints)
     proxy_df = build_news_sentiment_proxy(news_df) if not news_df.empty else pd.DataFrame()
     if not proxy_df.empty:
         write_csv(proxy_df, DATA_PROCESSED / "news_sentiment_proxy.csv")
+        _snapshot_last_good_csv(DATA_PROCESSED / "news_sentiment_proxy.csv", "news_sentiment_proxy")
     else:
         p_cache = DATA_PROCESSED / "news_sentiment_proxy.csv"
-        if p_cache.exists():
-            try:
-                proxy_df = pd.read_csv(p_cache)
-                refresh_warnings.append("Using cached news_sentiment_proxy.csv due to refresh failure.")
-            except Exception:
-                refresh_warnings.append("news_sentiment_proxy.csv cache exists but could not be read.")
+        proxy_df = _read_nonempty_csv(p_cache)
+        if not proxy_df.empty:
+            refresh_warnings.append("Using cached news_sentiment_proxy.csv due to refresh failure.")
+        else:
+            proxy_df = _restore_last_good_csv(DATA_PROCESSED / "news_sentiment_proxy.csv", "news_sentiment_proxy")
+            if not proxy_df.empty:
+                refresh_warnings.append("Restored news_sentiment_proxy.csv from last_good cache.")
+            else:
+                refresh_warnings.append("No non-empty news_sentiment_proxy cache was available.")
 
     proxy_row = {}
     if not proxy_df.empty:

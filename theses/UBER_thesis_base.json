@@ -32,7 +32,7 @@
       "statement": "Valuation is not expensive versus cash (FCF yield is decent)",
       "metric": "fcf_yield_pct",
       "operator": ">=",
-      "threshold": 4.5,
+      "threshold": 4.7,
       "weight": 2
     },
     {
@@ -40,7 +40,7 @@
       "statement": "Recent news shock is not severe (not a headline crisis)",
       "metric": "news_shock_30d",
       "operator": ">=",
-      "threshold": -12.0,
+      "threshold": -14.0,
       "weight": 1
     },
     {

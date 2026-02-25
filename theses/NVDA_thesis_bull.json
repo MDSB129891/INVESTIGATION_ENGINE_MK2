@@ -1,6 +1,6 @@
 {
-  "name": "UBER: Bull case \u2014 strong execution and upside scenario",
-  "ticker": "UBER",
+  "name": "NVDA: Bull case \u2014 strong execution and upside scenario",
+  "ticker": "NVDA",
   "description": "Good world: growth stays strong, margins stay high, and valuation can be a bit richer without breaking the story.",
   "claims": [
     {
@@ -32,7 +32,7 @@
       "statement": "Valuation stays reasonable even if investors get more optimistic",
       "metric": "fcf_yield_pct",
       "operator": ">=",
-      "threshold": 3.7,
+      "threshold": 2.0,
       "weight": 1
     },
     {
@@ -40,7 +40,7 @@
       "statement": "News risk is not a major crisis even in a noisy world",
       "metric": "news_shock_30d",
       "operator": ">=",
-      "threshold": -20.0,
+      "threshold": -48.0,
       "weight": 1
     },
     {

@@ -9,18 +9,24 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 EXPORT = ROOT / "export"
 
-def run(cmd: list[str]) -> None:
-    subprocess.run(cmd, check=True)
+def run(cmd: list[str]) -> bool:
+    try:
+        subprocess.run(cmd, check=True)
+        return True
+    except Exception as e:
+        print(f"WARN ⚠️ PDF conversion command failed: {e}")
+        return False
 
 def main(ticker: str):
     ticker = ticker.upper()
     docx = EXPORT / f"{ticker}_Full_Investment_Memo.docx"
     if not docx.exists():
-        raise FileNotFoundError(f"Missing DOCX: {docx}")
+        print(f"WARN ⚠️ Missing DOCX for PDF export: {docx}")
+        return
 
     # LibreOffice CLI
     # Output goes to EXPORT folder
-    run([
+    ok = run([
         "soffice",
         "--headless",
         "--convert-to", "pdf",
@@ -35,7 +41,16 @@ def main(ticker: str):
         if candidates:
             pdf = candidates[0]
 
-    print(f"DONE ✅ PDF created: {pdf}")
+    if pdf.exists():
+        if ok:
+            print(f"DONE ✅ PDF created: {pdf}")
+        else:
+            print(f"WARN ⚠️ Reusing existing PDF artifact: {pdf}")
+    else:
+        print(
+            "WARN ⚠️ PDF export unavailable (LibreOffice issue). "
+            f"DOCX is available: {docx}"
+        )
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

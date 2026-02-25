@@ -7,11 +7,16 @@ import os
 import shlex
 import subprocess
 import sys
+import threading
+import time
+import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, quote, unquote
+from urllib.parse import parse_qs, quote
 
 ROOT = Path(__file__).resolve().parents[1]
+JOBS: dict[str, dict] = {}
+JOBS_LOCK = threading.Lock()
 
 
 def _python_ge_311(py: str) -> bool:
@@ -42,13 +47,9 @@ def _select_python() -> str:
     return "python3"
 
 
-def _run_vision(ticker: str, thesis: str, peers: str, strict: bool) -> tuple[int, str]:
+def _run_vision(ticker: str, thesis: str) -> tuple[int, str]:
     py = _select_python()
     cmd = [py, str(ROOT / "scripts" / "vision.py"), ticker, thesis]
-    if peers.strip():
-        cmd += ["--peers", peers.strip()]
-    if strict:
-        cmd += ["--strict"]
     try:
         p = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True)
         out = (p.stdout or "") + ("\n" + p.stderr if p.stderr else "")
@@ -68,8 +69,8 @@ button{{padding:10px 14px;border-radius:8px;border:1px solid #3d78d8;background:
 a{{color:#8fd3ff}}
 code{{white-space:pre-wrap}}
 </style></head><body>
-<div class="card"><h2>Vision Iron Legion App</h2>
-<div>Run the full armor pipeline using only ticker + thesis.</div></div>
+<div class="card"><h2>Iron Legion Mobile Console</h2>
+<div>Run the full pipeline using only ticker + thesis, then open outputs from your phone.</div></div>
 {body}
 </body></html>""".encode("utf-8")
 
@@ -83,6 +84,74 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self):
+        if self.path == "/health":
+            self._send(200, _page("<div class='card'>ok</div>"))
+            return
+
+        if self.path.startswith("/run/"):
+            job_id = self.path.split("?", 1)[0].rsplit("/", 1)[-1].strip()
+            with JOBS_LOCK:
+                job = JOBS.get(job_id)
+            if not job:
+                self._send(404, _page("<div class='card'>Run not found.</div>"))
+                return
+
+            ticker = str(job.get("ticker", ""))
+            thesis = str(job.get("thesis", ""))
+            status = str(job.get("status", "unknown")).lower()
+            created = float(job.get("created_at", time.time()))
+            elapsed = max(0, int(time.time() - created))
+            out = str(job.get("log_tail", ""))
+            rc = job.get("returncode")
+
+            if status in {"queued", "running"}:
+                refresh = '<meta http-equiv="refresh" content="3">'
+                body = f"""
+<div class="card">
+  {refresh}
+  <div><b>Status:</b> {status.upper()}</div>
+  <div><b>Ticker:</b> {html.escape(ticker)}</div>
+  <div><b>Elapsed:</b> {elapsed}s</div>
+  <div style="margin-top:8px;opacity:.8;">Pipeline is running in background. This page auto-refreshes.</div>
+  <div style="margin-top:8px;"><a href="/">Start another run</a></div>
+</div>
+"""
+                self._send(200, _page(body))
+                return
+
+            safe_out = html.escape(out[-30000:])
+            hud_rel = f"export/CANON_{ticker}/{ticker}_IRONMAN_HUD.html"
+            ns_rel = f"export/CANON_{ticker}/{ticker}_NEWS_SOURCES.html"
+            il_rel = f"outputs/iron_legion_command_{ticker}.html"
+            sb_rel = f"export/CANON_{ticker}/{ticker}_STORMBREAKER.html"
+            ts_rel = f"export/CANON_{ticker}/{ticker}_TIMESTONE.html"
+            rcpt_rel = f"outputs/receipts_{ticker}.html"
+            pdf_rel = f"export/{ticker}_Full_Investment_Memo.pdf"
+            pi_rel = f"outputs/pipeline_integrity_{ticker}.json"
+            body = f"""
+<div class="card">
+  <div><b>Status:</b> {"SUCCESS" if rc == 0 else "DEGRADED / FAILED STEP"}</div>
+  <div><b>Ticker:</b> {html.escape(ticker)}</div>
+  <div><b>Thesis:</b> {html.escape(thesis)}</div>
+  <div style="margin-top:8px;"><b>Open outputs:</b></div>
+  <ul>
+    <li><a target="_blank" href="/artifact?path={quote(hud_rel)}">{ticker}_IRONMAN_HUD.html</a></li>
+    <li><a target="_blank" href="/artifact?path={quote(ns_rel)}">{ticker}_NEWS_SOURCES.html</a></li>
+    <li><a target="_blank" href="/artifact?path={quote(sb_rel)}">{ticker}_STORMBREAKER.html</a></li>
+    <li><a target="_blank" href="/artifact?path={quote(il_rel)}">iron_legion_command_{ticker}.html</a></li>
+    <li><a target="_blank" href="/artifact?path={quote(rcpt_rel)}">receipts_{ticker}.html</a></li>
+    <li><a target="_blank" href="/artifact?path={quote(ts_rel)}">{ticker}_TIMESTONE.html</a></li>
+    <li><a target="_blank" href="/artifact?path={quote(pdf_rel)}">{ticker}_Full_Investment_Memo.pdf</a></li>
+    <li><a target="_blank" href="/artifact?path={quote(pi_rel)}">pipeline_integrity_{ticker}.json</a></li>
+  </ul>
+  <div><b>Log tail:</b></div>
+  <code>{safe_out}</code>
+</div>
+<div class="card"><a href="/">Run another ticker</a></div>
+"""
+            self._send(200, _page(body))
+            return
+
         if self.path.startswith("/artifact?"):
             qs = parse_qs(self.path.split("?", 1)[1])
             raw = (qs.get("path", [""])[0] or "").strip()
@@ -108,14 +177,20 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(500, _page(f"<div class='card'>Failed to read artifact: {html.escape(str(e))}</div>"))
                 return
 
-        form = """
+        with JOBS_LOCK:
+            running = next((jid for jid, j in JOBS.items() if str(j.get("status")) in {"queued", "running"}), "")
+
+        running_note = ""
+        if running:
+            running_note = f"<div class='card'><b>Active run:</b> <a href='/run/{html.escape(running)}'>Open status</a></div>"
+
+        form = f"""
+{running_note}
 <div class="card">
   <form method="POST" action="/run">
     <label>Ticker</label><input name="ticker" value="" placeholder="e.g. GOOGL"/>
     <label>Thesis</label><textarea name="thesis" rows="4" placeholder="e.g. AI demand can support revenue and margin expansion over the next 6-12 months."></textarea>
-    <label>Peers (optional, comma-separated)</label><input name="peers" value="" placeholder="e.g. MSFT,AMZN"/>
-    <label><input type="checkbox" name="strict" checked/> Strict mode</label><br/><br/>
-    <button type="submit">Run Vision</button>
+    <br/><button type="submit">Run Full Pipeline</button>
   </form>
 </div>
 """
@@ -130,48 +205,52 @@ class Handler(BaseHTTPRequestHandler):
         q = parse_qs(raw)
         ticker = (q.get("ticker", [""])[0] or "").strip().upper()
         thesis = (q.get("thesis", [""])[0] or "").strip()
-        peers = (q.get("peers", [""])[0] or "").strip()
-        strict = "strict" in q
 
         if not ticker or not thesis:
             self._send(400, _page("<div class='card'>Ticker and thesis are required.</div>"))
             return
 
-        rc, out = _run_vision(ticker, thesis, peers, strict)
-        safe_out = html.escape(out[-30000:])
-        canon = ROOT / "export" / f"CANON_{ticker}"
-        hud_rel = f"export/CANON_{ticker}/{ticker}_IRONMAN_HUD.html"
-        ns_rel = f"export/CANON_{ticker}/{ticker}_NEWS_SOURCES.html"
-        il_rel = f"outputs/iron_legion_command_{ticker}.html"
-        sb_rel = f"export/CANON_{ticker}/{ticker}_STORMBREAKER.html"
-        mr_rel = f"outputs/mission_report_{ticker}.html"
-        pi_rel = f"outputs/pipeline_integrity_{ticker}.json"
-        body = f"""
-<div class="card">
-  <div><b>Status:</b> {"SUCCESS" if rc == 0 else "DEGRADED / FAILED STEP"}</div>
-  <div><b>Command:</b> <code>{html.escape('python3 scripts/vision.py ' + shlex.quote(ticker) + ' ' + shlex.quote(thesis))}</code></div>
-  <div style="margin-top:8px;">Open outputs:</div>
-  <ul>
-    <li><a href="/artifact?path={quote(hud_rel)}">{ticker}_IRONMAN_HUD.html</a></li>
-    <li><a href="/artifact?path={quote(ns_rel)}">{ticker}_NEWS_SOURCES.html</a></li>
-    <li><a href="/artifact?path={quote(sb_rel)}">{ticker}_STORMBREAKER.html</a></li>
-    <li><a href="/artifact?path={quote(il_rel)}">iron_legion_command_{ticker}.html</a></li>
-    <li><a href="/artifact?path={quote(mr_rel)}">mission_report_{ticker}.html</a></li>
-    <li><a href="/artifact?path={quote(pi_rel)}">pipeline_integrity_{ticker}.json</a></li>
-  </ul>
-  <div><b>Log tail:</b></div>
-  <code>{safe_out}</code>
-</div>
-<div class="card"><a href="/">Run another ticker</a></div>
-"""
-        self._send(200, _page(body))
+        with JOBS_LOCK:
+            running = next((jid for jid, j in JOBS.items() if str(j.get("status")) in {"queued", "running"}), "")
+            if running:
+                body = f"<div class='card'>A run is already active. <a href='/run/{html.escape(running)}'>Open status</a></div>"
+                self._send(409, _page(body))
+                return
+
+            job_id = uuid.uuid4().hex[:12]
+            JOBS[job_id] = {
+                "id": job_id,
+                "ticker": ticker,
+                "thesis": thesis,
+                "status": "queued",
+                "created_at": time.time(),
+                "returncode": None,
+                "log_tail": "",
+            }
+
+        def _worker(jid: str, tk: str, th: str):
+            with JOBS_LOCK:
+                if jid in JOBS:
+                    JOBS[jid]["status"] = "running"
+            rc, out = _run_vision(tk, th)
+            with JOBS_LOCK:
+                if jid in JOBS:
+                    JOBS[jid]["status"] = "done" if rc == 0 else "failed"
+                    JOBS[jid]["returncode"] = rc
+                    JOBS[jid]["log_tail"] = out[-120000:]
+                    JOBS[jid]["finished_at"] = time.time()
+
+        threading.Thread(target=_worker, args=(job_id, ticker, thesis), daemon=True).start()
+        self.send_response(303)
+        self.send_header("Location", f"/run/{job_id}")
+        self.end_headers()
 
 
 def main():
     if sys.version_info < (3, 11):
         print("WARNING: vision_web.py is running on Python < 3.11. It will invoke a 3.11+ interpreter if available.")
     ap = argparse.ArgumentParser()
-    ap.add_argument("--host", default="127.0.0.1")
+    ap.add_argument("--host", default="0.0.0.0")
     ap.add_argument("--port", type=int, default=8765)
     args = ap.parse_args()
     srv = ThreadingHTTPServer((args.host, args.port), Handler)

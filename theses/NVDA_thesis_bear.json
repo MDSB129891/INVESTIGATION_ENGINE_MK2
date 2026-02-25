@@ -1,6 +1,6 @@
 {
-  "name": "UBER: Bear case \u2014 only buy if resilient + cheap + risks quiet",
-  "ticker": "UBER",
+  "name": "NVDA: Bear case \u2014 only buy if resilient + cheap + risks quiet",
+  "ticker": "NVDA",
   "description": "Bad world: only buy if cash stays positive, valuation is cheap enough, and risk headlines are not escalating.",
   "claims": [
     {
@@ -32,7 +32,7 @@
       "statement": "Stock is cheap enough to compensate for risks (higher required cash yield)",
       "metric": "fcf_yield_pct",
       "operator": ">=",
-      "threshold": 6.0,
+      "threshold": 5.0,
       "weight": 3
     },
     {
@@ -56,7 +56,7 @@
       "statement": "Regulatory risk stays low",
       "metric": "risk_regulatory_neg_30d",
       "operator": "<=",
-      "threshold": 2,
+      "threshold": 6,
       "weight": 1
     },
     {
@@ -64,7 +64,7 @@
       "statement": "Labor risk stays low",
       "metric": "risk_labor_neg_30d",
       "operator": "<=",
-      "threshold": 2,
+      "threshold": 13,
       "weight": 1
     },
     {

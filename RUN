@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")"
+
+TICKER="${1:-}"
+shift || true
+THESIS_TEXT="${*:-}"
+
+if [[ -z "${TICKER}" || -z "${THESIS_TEXT}" ]]; then
+  echo "Usage: ./RUN TICKER \"THESIS TEXT\""
+  echo "Example: ./RUN NVDA \"AI demand supports sustained growth\""
+  exit 1
+fi
+
+exec ./scripts/run_everything.sh "${TICKER}" "${THESIS_TEXT}"

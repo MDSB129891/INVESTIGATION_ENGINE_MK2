@@ -1,9 +1,18 @@
 {
   "ticker": "GM",
   "name": "GM: Custom thesis",
-  "headline": "GM: GM will increase in value due to EV and hybrid pivot",
-  "description": "GM will increase in value due to EV and hybrid pivot",
-  "generated_utc": "2026-02-22 21:28 UTC",
+  "headline": "GM: increase presence in the EV market will lead to the company's stabilization",
+  "description": "increase presence in the EV market will lead to the company's stabilization",
+  "generated_utc": "2026-02-23 19:13 UTC",
+  "profile": "balanced",
+  "profile_thresholds": {
+    "rev_yoy_min": 8.0,
+    "fcf_positive_min": 0.0,
+    "fcf_margin_min": 5.0,
+    "fcf_yield_min": 3.0,
+    "news_shock_min": -20.0,
+    "risk_tag_max": 3
+  },
   "claims": [
     {
       "id": "c1",

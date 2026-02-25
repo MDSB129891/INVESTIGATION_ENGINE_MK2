@@ -76,6 +76,7 @@ def main():
     env["TICKER"] = t
     env["PEERS"] = ",".join(peers)
     env["UNIVERSE"] = ",".join(universe)
+    enable_legacy_surfaces = str(os.getenv("ENABLE_LEGACY_SURFACES", "0")).strip().lower() in {"1", "true", "yes", "on"}
 
     thesis_text = (args.thesis or "").strip()
     thesis_file = (args.thesis_file or "").strip()
@@ -148,7 +149,6 @@ def main():
         ("build_investment_memo.py", ["--ticker", t, "--thesis", str(thesis_out)]),
         ("build_calculation_methodology.py", ["--ticker", t]),
         ("export_pdf.py", ["--ticker", t]),
-        ("generate_dashboard.py", ["--ticker", t]),
         ("build_news_risk_summary.py", ["--ticker", t]),
         ("build_news_sources_tab.py", ["--ticker", t]),
         ("build_company_intel.py", ["--ticker", t]),
@@ -174,6 +174,9 @@ def main():
         ("build_shield_evidence_locker.py", ["--ticker", t]),
         ("build_legion_commander.py", ["--ticker", t]),
     ]
+
+    if enable_legacy_surfaces:
+        post_steps.insert(8, ("generate_dashboard.py", ["--ticker", t]))
 
     soft_fail_steps = {
         "build_macro_context.py",
@@ -260,7 +263,8 @@ def main():
     print(f"- Legion Commander: {ROOT / 'outputs' / f'legion_commander_{t}.html'}")
     print(f"- Decision Core: {ROOT / 'export' / f'CANON_{t}' / f'{t}_DECISION_CORE.json'}")
     print(f"- Monte Carlo: {ROOT / 'export' / f'CANON_{t}' / f'{t}_MONTECARLO.json'}")
-    print(f"- Dashboard: {ROOT / 'outputs' / f'decision_dashboard_{t}.html'}")
+    if enable_legacy_surfaces:
+        print(f"- Dashboard: {ROOT / 'outputs' / f'decision_dashboard_{t}.html'}")
     print(f"- Veracity: {ROOT / 'outputs' / f'veracity_{t}.json'}")
     print(f"- Alerts: {ROOT / 'outputs' / f'alerts_{t}.json'}")
     print(f"- Memo PDF: {ROOT / 'export' / f'{t}_Full_Investment_Memo.pdf'}")

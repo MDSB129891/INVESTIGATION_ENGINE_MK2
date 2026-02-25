@@ -58,28 +58,53 @@ echo ""
   --refresh-sleep-seconds "${ARC_REACTOR_RETRY_SLEEP_SEC:-15}"
 
 echo ""
-echo "🚀 OPENING PRIMARY OUTPUT (HUD)"
+echo "🚀 OPENING KEY OUTPUTS"
+
+open_path() {
+  local path="$1"
+  if [[ ! -f "${path}" ]]; then
+    echo "skip missing: ${path}"
+    return 0
+  fi
+
+  echo "open ${path}"
+  if open "${path}" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  case "${path}" in
+    *.html)
+      open -a "Google Chrome" "${path}" >/dev/null 2>&1 || true
+      open -a "Safari" "${path}" >/dev/null 2>&1 || true
+      ;;
+    *.pdf)
+      open -a "Preview" "${path}" >/dev/null 2>&1 || true
+      ;;
+    *)
+      true
+      ;;
+  esac
+}
 
 TO_OPEN=(
   "export/CANON_${TICKER_UPPER}/${TICKER_UPPER}_IRONMAN_HUD.html"
+  "export/CANON_${TICKER_UPPER}/${TICKER_UPPER}_NEWS_SOURCES.html"
+  "export/CANON_${TICKER_UPPER}/${TICKER_UPPER}_STORMBREAKER.html"
+  "outputs/iron_legion_command_${TICKER_UPPER}.html"
+  "outputs/receipts_${TICKER_UPPER}.html"
+  "outputs/recommendation_brief_${TICKER_UPPER}.pdf"
+  "export/${TICKER_UPPER}_Full_Investment_Memo.pdf"
 )
 
 for f in "${TO_OPEN[@]}"; do
-  if [[ -f "${f}" ]]; then
-    echo "open ${f}"
-    open "${f}" || true
-  else
-    echo "skip missing: ${f}"
-  fi
+  open_path "${f}"
 done
 
 echo ""
-echo "Other outputs:"
-echo "- Dashboard: outputs/decision_dashboard_${TICKER_UPPER}.html"
+echo "Advanced outputs:"
 echo "- Legion: outputs/iron_legion_command_${TICKER_UPPER}.html"
 echo "- J.A.R.V.I.S. News Sources (Primary news view): export/CANON_${TICKER_UPPER}/${TICKER_UPPER}_NEWS_SOURCES.html"
 echo "- Stormbreaker: export/CANON_${TICKER_UPPER}/${TICKER_UPPER}_STORMBREAKER.html"
-echo "- News Clickpack (Secondary drill-down): outputs/news_clickpack_${TICKER_UPPER}.html"
 echo "- Receipts: outputs/receipts_${TICKER_UPPER}.html"
 echo "- Timestone: export/CANON_${TICKER_UPPER}/${TICKER_UPPER}_TIMESTONE.html"
 echo "- Memo PDF: export/${TICKER_UPPER}_Full_Investment_Memo.pdf"

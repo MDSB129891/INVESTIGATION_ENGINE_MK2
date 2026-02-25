@@ -1,6 +1,6 @@
 {
-  "name": "GM: Base case \u2014 growth + cash generation supports the thesis",
-  "ticker": "GM",
+  "name": "NVDA: Base case \u2014 growth + cash generation supports the thesis",
+  "ticker": "NVDA",
   "description": "Normal world: we want healthy growth, strong free cash flow, reasonable valuation, and non-escalating risk headlines.",
   "claims": [
     {
@@ -32,7 +32,7 @@
       "statement": "Valuation is not expensive versus cash (FCF yield is decent)",
       "metric": "fcf_yield_pct",
       "operator": ">=",
-      "threshold": 8.0,
+      "threshold": 3.0,
       "weight": 2
     },
     {
@@ -40,7 +40,7 @@
       "statement": "Recent news shock is not severe (not a headline crisis)",
       "metric": "news_shock_30d",
       "operator": ">=",
-      "threshold": -29.0,
+      "threshold": -48.0,
       "weight": 1
     },
     {
@@ -56,7 +56,7 @@
       "statement": "Regulatory risk is not spiking recently",
       "metric": "risk_regulatory_neg_30d",
       "operator": "<=",
-      "threshold": 7,
+      "threshold": 6,
       "weight": 1
     },
     {
@@ -64,7 +64,7 @@
       "statement": "Labor risk is not spiking recently",
       "metric": "risk_labor_neg_30d",
       "operator": "<=",
-      "threshold": 3,
+      "threshold": 13,
       "weight": 1
     },
     {

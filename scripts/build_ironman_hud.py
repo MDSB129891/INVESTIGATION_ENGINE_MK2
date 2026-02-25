@@ -586,7 +586,6 @@ def main(ticker: str):
         (f"{T}_ARMOR_SYSTEMS.html", canon / f"{T}_ARMOR_SYSTEMS.html", "Armor systems"),
         (f"../../outputs/iron_legion_command_{T}.html", ROOT / "outputs" / f"iron_legion_command_{T}.html", "Iron Legion command"),
         (f"../../outputs/receipts_{T}.html", ROOT / "outputs" / f"receipts_{T}.html", "Receipts"),
-        (f"decision_dashboard_{T}.html", canon / f"decision_dashboard_{T}.html", "Dashboard"),
         (f"../../outputs/claim_evidence_{T}.html", ROOT / "outputs" / f"claim_evidence_{T}.html", "Claim evidence"),
     ]
     for href, p, label in next_candidates:
@@ -719,12 +718,6 @@ def main(ticker: str):
         f'<a href="{T}_NEWS_SOURCES.html">Open J.A.R.V.I.S. News Sources (Primary)</a>'
         if news_tab_path.exists()
         else f'<a href="../../outputs/news_evidence_{T}.html">Open raw news evidence</a>'
-    )
-    clickpack_path = canon / f"news_clickpack_{T}.html"
-    clickpack_link = (
-        f'<a href="news_clickpack_{T}.html">Open News Clickpack (Secondary drill-down)</a>'
-        if clickpack_path.exists()
-        else f'<a href="../../outputs/news_clickpack_{T}.html">Open News Clickpack (Secondary drill-down)</a>'
     )
 
     # --- Closest competitors snapshot (peer universe first, then market-cap proximity fallback) ---
@@ -1757,7 +1750,6 @@ a {{ color:#8fd3ff; text-decoration:none; }}
       <div class="row"><div>Evidence rows (30d)</div><div>{_fmt_num(news_evidence_rows)}</div></div>
       <div class="row"><div>Source mix (30d)</div><div>{htmlmod.escape(news_source_mix)}</div></div>
       <div class="small">{news_tab_link}</div>
-      <div class="small">{clickpack_link}</div>
       <div class="small">Raw evidence: <a href="../../outputs/news_evidence_{T}.html">news_evidence_{T}.html</a></div>
     </div>
 

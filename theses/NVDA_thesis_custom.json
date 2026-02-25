@@ -1,16 +1,16 @@
 {
-  "ticker": "UBER",
-  "name": "UBER: Custom thesis",
-  "headline": "UBER: Uber + the possibility of drivers becoming actual employees of the company will be detrimental for the company's stock p...",
-  "description": "Uber + the possibility of drivers becoming actual employees of the company will be detrimental for the company's stock price",
-  "generated_utc": "2026-02-23 17:27 UTC",
-  "profile": "balanced",
+  "ticker": "NVDA",
+  "name": "NVDA: Custom thesis",
+  "headline": "NVDA: AI demand will lead to and increase in demand for company products, thus increasing the price of their stock",
+  "description": "AI demand will lead to and increase in demand for company products, thus increasing the price of their stock",
+  "generated_utc": "2026-02-25 16:19 UTC",
+  "profile": "growth",
   "profile_thresholds": {
-    "rev_yoy_min": 8.0,
+    "rev_yoy_min": 10.0,
     "fcf_positive_min": 0.0,
-    "fcf_margin_min": 5.0,
-    "fcf_yield_min": 3.0,
-    "news_shock_min": -20.0,
+    "fcf_margin_min": 0.0,
+    "fcf_yield_min": 1.0,
+    "news_shock_min": -18.0,
     "risk_tag_max": 3
   },
   "claims": [
@@ -18,7 +18,7 @@
       "id": "c1",
       "metric": "latest_revenue_yoy_pct",
       "operator": ">=",
-      "threshold": 8.0,
+      "threshold": 10.0,
       "rationale": "Growth should stay positive in the base case."
     },
     {
@@ -32,29 +32,29 @@
       "id": "c3",
       "metric": "latest_fcf_margin_pct",
       "operator": ">=",
-      "threshold": 8.0,
-      "rationale": "If labor costs rise, margins get hit first \u2014 require cushion."
+      "threshold": 0.0,
+      "rationale": "Cash efficiency shouldn't collapse."
     },
     {
       "id": "c4",
       "metric": "fcf_yield_pct",
       "operator": ">=",
-      "threshold": 4.5,
-      "rationale": "If risk rises, valuation should compensate via cash yield."
+      "threshold": 1.0,
+      "rationale": "Valuation should not be extremely stretched versus cash generation."
     },
     {
       "id": "c5",
       "metric": "news_shock_30d",
       "operator": ">=",
-      "threshold": -20.0,
+      "threshold": -18.0,
       "rationale": "Avoid severe negative headline shock over the last 30 days."
     },
     {
       "id": "c6",
       "metric": "risk_regulatory_neg_30d",
       "operator": "<=",
-      "threshold": 2,
-      "rationale": "Worker classification risk should stay calm (regulatory headlines)."
+      "threshold": 3,
+      "rationale": "Regulatory pressure should not spike in the last 30 days."
     },
     {
       "id": "c7",
@@ -67,8 +67,8 @@
       "id": "c8",
       "metric": "risk_labor_neg_30d",
       "operator": "<=",
-      "threshold": 2,
-      "rationale": "Worker classification risk should stay calm (labor headlines)."
+      "threshold": 3,
+      "rationale": "Labor-related negative headlines should not spike in the last 30 days."
     }
   ]
 }

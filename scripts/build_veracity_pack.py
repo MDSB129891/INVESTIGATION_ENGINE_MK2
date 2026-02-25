@@ -104,6 +104,13 @@ def build_clickpack_html(ticker: str, df: pd.DataFrame, out_path: Path) -> None:
         </tr>
         """)
 
+    empty_note = ""
+    if len(rows) == 0:
+        empty_note = (
+            "<tr><td colspan='2' style='opacity:.75;'>No news rows available for this ticker in the current dataset."
+            " Try refresh when network/provider connectivity is restored.</td></tr>"
+        )
+
     html = f"""<!doctype html>
 <html>
 <head>
@@ -124,7 +131,7 @@ a:hover {{ text-decoration: underline; }}
 <h1>News Clickpack — {ticker}</h1>
 <p><span class="badge">Click top negatives first</span> • Generated {utc_now()}</p>
 <table>
-{''.join(rows)}
+{''.join(rows) if rows else empty_note}
 </table>
 </body>
 </html>"""
@@ -132,16 +139,14 @@ a:hover {{ text-decoration: underline; }}
 
 def main(ticker: str):
     ticker = ticker.upper()
+    emit_clickpack = str(os.getenv("ENABLE_LEGACY_SURFACES", "0")).strip().lower() in {"1", "true", "yes", "on"}
     news = read_csv(DATA / "news_unified.csv")
     if news.empty:
-        raise FileNotFoundError("Missing data/processed/news_unified.csv — run run_arc_reactor_update.py first")
+        news = pd.DataFrame(columns=["ticker", "source", "title", "url", "risk_tag", "impact_score", "published_at"])
 
     # Filter ticker
     if "ticker" in news.columns:
         news = news[news["ticker"].astype(str).str.upper() == ticker].copy()
-
-    if news.empty:
-        raise ValueError(f"No news rows found for {ticker} in news_unified.csv")
 
     # normalize
     for c in ["source","title","url","risk_tag"]:
@@ -150,7 +155,8 @@ def main(ticker: str):
 
     # URL coverage
     urls = news["url"].astype(str)
-    url_cov = float((urls.str.startswith("http")).mean())
+    url_cov_raw = (urls.str.startswith("http")).mean()
+    url_cov = float(url_cov_raw) if pd.notna(url_cov_raw) else 0.0
 
     # Source counts
     source_counts = news["source"].astype(str).str.lower().value_counts().to_dict()
@@ -158,7 +164,8 @@ def main(ticker: str):
     # whitelist hits (based on source field)
     wl = set(load_whitelist())
     src_series = news["source"].astype(str).str.lower()
-    whitelist_hits = float(src_series.isin(wl).mean())
+    whitelist_raw = src_series.isin(wl).mean()
+    whitelist_hits = float(whitelist_raw) if pd.notna(whitelist_raw) else 0.0
 
     has_sec = ("sec" in source_counts) and (source_counts.get("sec",0) > 0)
 
@@ -172,6 +179,15 @@ def main(ticker: str):
         must = news.head(12)
 
     confidence, details = score_confidence(source_counts, url_cov, whitelist_hits, has_sec, len(news))
+    degraded_reason = None
+    if news.empty:
+        confidence = 0
+        details = {
+            "hhi": None,
+            "degraded": True,
+            "reason": f"No news rows found for {ticker} in news_unified.csv",
+        }
+        degraded_reason = details["reason"]
 
     payload = {
         "ticker": ticker,
@@ -183,6 +199,7 @@ def main(ticker: str):
         "has_sec": bool(has_sec),
         "confidence_score": int(confidence),
         "confidence_details": details,
+        "degraded_reason": degraded_reason,
         "must_click": [
             {
                 "published_at": str(r.get("published_at","")),
@@ -198,15 +215,15 @@ def main(ticker: str):
 
     (OUT / f"veracity_{ticker}.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
-    # Clickpack HTML
-    clickpack = OUT / f"news_clickpack_{ticker}.html"
-    # Show “must click” first + then rest (optional)
-    click_df = pd.concat([must, news]).drop_duplicates(subset=["url","title"], keep="first")
-    build_clickpack_html(ticker, click_df.head(250), clickpack)
-
     print("DONE ✅ Veracity pack created:")
     print(f"- {OUT / f'veracity_{ticker}.json'}")
-    print(f"- {clickpack}")
+
+    if emit_clickpack:
+        clickpack = OUT / f"news_clickpack_{ticker}.html"
+        # Show “must click” first + then rest (optional)
+        click_df = pd.concat([must, news]).drop_duplicates(subset=["url","title"], keep="first")
+        build_clickpack_html(ticker, click_df.head(250), clickpack)
+        print(f"- {clickpack}")
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

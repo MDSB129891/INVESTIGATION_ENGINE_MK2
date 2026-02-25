@@ -40,7 +40,7 @@
       "statement": "News risk is not a major crisis even in a noisy world",
       "metric": "news_shock_30d",
       "operator": ">=",
-      "threshold": -27.0,
+      "threshold": -29.0,
       "weight": 1
     },
     {

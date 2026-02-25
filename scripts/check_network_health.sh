@@ -3,7 +3,12 @@ set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
-TEST_TICKER="$(printf "%s" "${1:-${TICKER:-AAPL}}" | tr '[:lower:]' '[:upper:]')"
+TEST_TICKER="$(printf "%s" "${1:-${TICKER:-}}" | tr '[:lower:]' '[:upper:]')"
+if [[ -z "${TEST_TICKER}" ]]; then
+  echo "Usage: bash scripts/check_network_health.sh TICKER"
+  echo "or set TICKER in environment."
+  exit 1
+fi
 
 DATE_TO="$(python3 - <<'PY'
 from datetime import datetime, timezone
